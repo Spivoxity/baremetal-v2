@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# Debug target set by configuration or environment variable
+: ${DBGTGT:=nrf52}
+
+case $1 in
+    *.elf)
+        file=$1
+        if ! [ -r $file ]; then
+            echo "debug: can't find $file" >&2; exit 1
+        fi;;
+    *) 
+        echo "Usage: debug file.elf" >&2; exit 1;;
+esac
+
+# Don't exit on interrupt
+trap '' 2
+
+GDB=`which arm-none-eabi-gdb` || GDB=`which gdb-multiarch` \
+    || { echo "debug: can't find gdb" >/dev/stderr; exit 1; }
+
+# Start up the debug server: use "set -m" to protect from interrupts
+set -m
+pyocd gdbserver -t $DBGTGT >/dev/null 2>&1 &
+server=$!
+
+# Wait for the server to initialise
+sleep 2
+
+# Start up gdb
+$GDB $file -ex 'target extended-remote :3333'
+#ddd --gdb --debugger "$GDB -ex 'target extended-remote :3333'" $file
+
+# When gdb stops, kill the server and wait for it to die
+kill $server 2>/dev/null
+wait $server 2>/dev/null
+
+exit 0

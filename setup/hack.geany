@@ -1,0 +1,83 @@
+[editor]
+line_wrapping=false
+line_break_column=72
+auto_continue_multiline=true
+
+[file_prefs]
+final_new_line=true
+ensure_convert_new_lines=false
+strip_trailing_spaces=false
+replace_tabs=false
+
+[indentation]
+indent_width=4
+indent_type=1
+indent_hard_tab_width=8
+detect_indent=true
+detect_indent_width=true
+indent_mode=2
+
+[project]
+name=@PROJNAME@
+base_path=.
+description=
+file_patterns=*.c;*.s;Makefile;*.ld;*.h;
+
+[long line marker]
+long_line_behaviour=1
+long_line_column=72
+
+[build-menu]
+filetypes=C;
+CFT_00_LB=_Make
+CFT_00_CM=make
+CFT_00_WD=
+CFT_01_LB=_Upload
+CFT_01_CM=../setup/upload @TARGET@.hex
+CFT_01_WD=
+CFT_02_LB=
+CFT_02_CM=
+CFT_02_WD=
+GnuARMFT_00_LB=_Make
+GnuARMFT_00_CM=make
+GnuARMFT_00_WD=
+GnuARMFT_01_LB=_Upload
+GnuARMFT_01_CM=../setup/upload @TARGET@.hex
+GnuARMFT_01_WD=
+GnuARMFT_02_LB=
+GnuARMFT_02_CM=
+GnuARMFT_02_WD=
+NF_00_LB=Attack
+NF_00_CM=./squirt attack
+NF_00_WD=
+NF_01_LB=
+NF_01_CM=
+NF_01_WD=
+NF_02_LB=
+NF_02_CM=
+NF_02_WD=
+NF_03_LB=Make _clean
+NF_03_CM=make clean
+NF_03_WD=
+EX_00_LB=Minicom
+EX_00_CM=minicom -D /dev/ttyACM0 -b 9600
+EX_00_WD=
+EX_01_LB=Debug
+EX_01_CM=../setup/debug @TARGET@.elf
+EX_01_WD=
+
+[prjorg]
+source_patterns=*.c;*.s;
+header_patterns=*.h;
+ignored_dirs_patterns=.*;CVS;
+ignored_file_patterns=*.o;*.obj;*.a;*.lib;*.so;*.dll;*.lo;*.la;*.class;*.jar;*.pyc;*.mo;*.gmo;*.elf;*.hex;
+generate_tag_prefs=0
+external_dirs=
+show_empty_dirs=true
+
+[files]
+current_page=0
+FILE_NAME_0=0;C;0;EUTF-8;0;1;0;@MAINFILE@;0;4
+
+[VTE]
+last_dir=@PROJDIR@

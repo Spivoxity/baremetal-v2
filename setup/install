@@ -1,0 +1,108 @@
+#!/bin/bash
+
+# Setup script for Bare Metal micro:bit.  The tasks:
+# 1. Install Raspi OS packages that are needed.
+# 2. Install enhanced version of Geany.
+# 3. Install a recent version of Pyocd.
+# 4. Create a file association for Geany project files.
+# 5. Adjust various preferences.
+# 6. Generate Geany project files for each experiment.
+
+# Make sure the shell is bash.
+if [ x$BASH_VERSION = x ]; then exec /bin/bash $0; fi
+
+# Make sure we're not running as root
+if [ $(whoami) = root ]; then /bin/echo "Please don't run as root"; exit 1; fi
+
+web=https://github.com/Spivoxity/geany-mods-1.37/releases/download/rel-1
+arch=$(dpkg --print-architecture)
+dir=$(dirname $0)
+
+cd $dir
+
+case $arch in
+    amd64|i386|armhf)
+        /bin/echo "Installing for architecture $arch ..."; /bin/echo;;
+    *)
+        /bin/echo "Can't install for architecture $arch"
+        exit 1
+esac
+
+/bin/echo "*** Adding APT repository"
+sudo /bin/cp geany-mods.list /etc/apt/sources.list.d/geany-mods.list
+sudo apt-key add geany-mods.gpg.key
+sudo apt-get update
+
+/bin/echo "*** Installing packages"
+sudo apt-get -y install \
+     geany geany-plugin-projectorganizer \
+     gcc-arm-none-eabi gdb-multiarch \
+     pulseview sigrok-firmware-fx2lafw minicom \
+     python3-pip bsdmainutils sed
+/bin/echo
+
+/bin/echo "*** Installing pyocd"
+sudo pip3 install pyocd
+/bin/echo
+
+/bin/echo "*** Associating project files with Geany"
+/bin/mkdir -p $HOME/.local/share/applications $HOME/.local/share/mime/packages
+/bin/cp application-x-geany-project.xml $HOME/.local/share/mime/packages
+/bin/cp geany.desktop $HOME/.local/share/applications
+update-mime-database $HOME/.local/share/mime
+update-desktop-database $HOME/.local/share/applications
+/bin/echo
+
+set-option () {
+    # Like crudini --set, but without the syntax error in new options
+    # or troubles with trailing whitespace
+    python3 houdini.py set $1 $2 $3 "$4"
+}
+
+/bin/echo "*** Making personalised settings for Geany"
+mkdir -p $HOME/.config/geany/filedefs
+geanyexts=$HOME/.config/geany/filetype_extensions.conf 
+set-option $geanyexts Extensions GnuAS ''
+set-option $geanyexts Extensions GnuARM '*.s;*.S;'
+/bin/cp filetypes.GnuARM.conf $HOME/.config/geany/filedefs
+/bin/echo
+
+/bin/echo "*** Setting preferences for Geany"
+geanyconf=$HOME/.config/geany/geany.conf
+
+# Geany: Disable 'Load files from last session'
+set-option $geanyconf geany pref_main_load_session false
+
+# Geany: Enable Project Organizer
+libdir=$(dpkg-architecture -q DEB_HOST_GNU_TYPE)
+set-option $geanyconf plugins load_plugins true
+plugins=$(python3 houdini.py get $geanyconf plugins active_plugins)
+file=/usr/lib/$libdir/geany/projectorganizer.so
+if ! [[ ";$plugins" =~ ";$file;" ]]; then
+    set-option $geanyconf plugins active_plugins "$plugins$file;"
+fi
+
+# Geany: Select project tab in sidebar
+set-option $geanyconf geany sidebar_page 2
+/bin/echo
+
+# File manager: Disable 'Show options for removable media' (only on Pi)
+fmconf=$HOME/.config/pcmanfm/LXDE-pi/pcmanfm.conf
+if [ -x /usr/bin/pcmanfm ]; then
+    /bin/echo "*** Installing file manager settings"
+    mkdir -p $HOME/.config/pcmanfm/LXDE-pi
+    set-option $fmconf volume mount_on_startup 1
+    set-option $fmconf volume mount_removable 1
+    set-option $fmconf volume autorun 0
+    /bin/echo
+fi
+
+/bin/echo "*** Installing default settings for Minicom"
+/bin/cp minirc.dfl $HOME/.minirc.dfl
+/bin/echo
+
+/bin/echo "*** Generating Geany project files"
+/bin/bash genproj
+/bin/echo
+
+/bin/echo "*** Done! Please reboot."

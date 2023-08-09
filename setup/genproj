@@ -1,0 +1,45 @@
+#!/bin/bash
+# genproj.in
+# Copyright (c) 2021 J. M. Spivey
+
+# dir is the parent directory of the setup subdirectory in which this
+# script lives.
+dir=$(dirname $(dirname $(realpath $0)))
+
+# For each project, substitute project-specific values for each @MARKER@;
+# then on the "[files] FILE_NAME" line, encode / as %2F
+project() {
+    proj=$1; type=$2; main=$3; targ=$4; name=${proj%%-*}
+    sed -e "s:@PROJNAME@:$name:" \
+        -e "s:@TARGET@:$targ:" \
+        -e "s:@PROJDIR@:$dir/$proj:" \
+        -e "s:@MICROBIAN@:$dir/microbian:" \
+        -e "s:@MAINFILE@:$dir/$proj/$main:" \
+        -e "/^FILE_NAME/s:/:%2F:g" \
+        $dir/setup/$type.geany >$dir/$proj/$name.geany
+}
+
+project x01-echo echo echo.c echo
+project x02-instrs part1 func.s func
+project x03-loops part1 mult.s mult
+project x04-numbers part1 max.s max
+project x05-subrs part1 fact.s fact
+project x06-arrays part1 bank.s bank
+project x07-hack hack total.c total
+project x08-heart part2 heart.c heart
+project x09-pureasm pureasm blinky.s blinky
+project x10-serial part2 primes.c primes
+project x11-interrupt part2 primes2.c primes2
+project x12-intrmech part2 bitbang.c bitbang
+project x13-neopixels part2 rainbow.c rainbow
+project x14-processes part3 valentine.c valentine
+project x15-messages part3 pcount.c pcount
+project x16-sync part3 chaos.c chaos
+project x17-driver part3 myprimes.c myprimes
+project x18-level part3 level.c level
+project x19-servos part3 buggy.c buggy
+project x20-radio part3 remote.c remote
+project x21-car part3 car.c car
+project x31-adc part3 lights.c lights
+project x32-infrared part3 decode.c decode
+project x33-clock part3 clock.c clock

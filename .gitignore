@@ -1,0 +1,12 @@
+*.geany
+*.o
+*.a
+*.elf
+*.bin
+*.hex
+*.map
+*~
+.vscode
+*.code-workspace
+x1500-hack/attack
+x1500-hack/squirt
