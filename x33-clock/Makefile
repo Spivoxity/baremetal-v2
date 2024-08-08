@@ -1,18 +1,23 @@
 # x33-clock/Makefile
 # Copyright (c) 2020-21 J. M. Spivey
-
-# genmake x33-clock clock.hex part3 {}
+# genmake x33-clock clock.hex part3 {} neopixel.o
 
 all: clock.hex
 
 CC = arm-none-eabi-gcc
+AS = arm-none-eabi-as
+LD = arm-none-eabi-ld
+AR = arm-none-eabi-ar
+SIZE = arm-none-eabi-size
+OBJCOPY = arm-none-eabi-objcopy
+
 CPU = -mcpu=cortex-m4 -mthumb
 CFLAGS = -O -g -Wall -ffreestanding
 INCLUDE = -I ../microbian
-AS = arm-none-eabi-as
-LD = arm-none-eabi-ld
-SIZE = arm-none-eabi-size
-OBJCOPY = arm-none-eabi-objcopy
+DEPS = neopixel.o
+STARTUP = ../microbian/microbian.a ../microbian/startup.o
+LIBS = -lgcc -lc
+LDSCRIPT = ../microbian/nRF52833.ld
 
 vpath %.h ../microbian
 
@@ -22,18 +27,18 @@ vpath %.h ../microbian
 %.o: %.s
 	$(AS) $(CPU) $< -o $@
 
-%.elf: %.o ../microbian/microbian.a ../microbian/startup.o
-	$(CC) $(CPU) $(CFLAGS) -T ../microbian/nRF52833.ld \
-		$^ -nostdlib -lgcc -lc -o $@ -Wl,-Map,$*.map
+%.elf: %.o $(DEPS) $(STARTUP)
+	$(CC) $(CPU) $(CFLAGS) -T $(LDSCRIPT) \
+		$^ -nostdlib $(LIBS) -o $@ -Wl,-Map,$*.map
 	$(SIZE) $@
 
 %.hex: %.elf
 	$(OBJCOPY) -O ihex $< $@
 
-../microbian/microbian.a:
+../microbian/microbian.a ../microbian/startup.o:
 	$(MAKE) -C $(@D) all
 
-# Nuke the default rules for building executables
+# Disable the default rules for building executables
 SORRY = echo "Please say 'make $@.hex' to compile '$@'"
 %: %.s; @$(SORRY)
 %: %.o; @$(SORRY)
@@ -45,7 +50,5 @@ clean:
 .SECONDARY:
 
 ###
-
-clock.elf: neopixel.o
 
 clock.o: microbian.h hardware.h lib.h 

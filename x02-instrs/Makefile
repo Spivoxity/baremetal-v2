@@ -1,17 +1,22 @@
 # x02-instrs/Makefile
 # Copyright (c) 2020-21 J. M. Spivey
-
-# genmake x02-instrs func.hex part1 {fmain.o lib.o}
+# genmake x02-instrs func.hex part1 use-ld fmain.o lib.o
 
 all: func.hex
 
 CC = arm-none-eabi-gcc
-CPU = -mcpu=cortex-m4 -mthumb
-CFLAGS = -O -g -Wall -ffreestanding
 AS = arm-none-eabi-as
 LD = arm-none-eabi-ld
+AR = arm-none-eabi-ar
 SIZE = arm-none-eabi-size
 OBJCOPY = arm-none-eabi-objcopy
+
+CPU = -mcpu=cortex-m4 -mthumb
+CFLAGS = -O -g -Wall -ffreestanding
+DEPS = fmain.o lib.o
+STARTUP = startup.o
+LIBS = -lgcc
+LDSCRIPT = nRF52833.ld
 
 %.o: %.c
 	$(CC) $(CPU) $(CFLAGS) $(INCLUDE) -c $< -o $@
@@ -20,19 +25,19 @@ OBJCOPY = arm-none-eabi-objcopy
 	$(AS) $(CPU) $< -o $@
 
 # Use ld for linking to help with the explanation
-%.elf: %.o fmain.o lib.o startup.o libgcc.a
-	$(LD) -T nRF52833.ld $^ -o $@ -Map $*.map
+%.elf: %.o $(DEPS) $(STARTUP)
+	$(LD) -T $(LDSCRIPT) $^ -o $@ -Map $*.map
 	$(SIZE) $@
 
 %.hex: %.elf
 	$(OBJCOPY) -O ihex $< $@
 
-# Nuke the default rules for building executables
+# Disable the default rules for building executables
 SORRY = echo "Please say 'make $@.hex' to compile '$@'"
 %: %.s; @$(SORRY)
 %: %.o; @$(SORRY)
 
-# Find libgcc: find the first part of the gcc search path.
+# Find libgcc: use the first component of the gcc search path.
 GCCLIB := $(shell $(CC) --print-search-dirs \
 		| sed -n '/^libraries: =\([^:]*\)\/:.*/s//\1/p')
 # Then try a couple of likely subdirectories for the library.

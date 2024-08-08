@@ -91,13 +91,13 @@ void display_task(int dummy)
     int n = 0;
 
 #ifdef UBIT_V1
-    GPIO_DIRSET = LED_MASK;
+    GPIO.DIRSET = LED_MASK;
     timer_pulse(5);             /* 5ms x 3 = 15ms updates */
 #endif
     
 #ifdef UBIT_V2
-    GPIO0_DIRSET = LED_MASK0;
-    GPIO1_DIRSET  = LED_MASK1;
+    GPIO0.DIRSET = LED_MASK0;
+    GPIO1.DIRSET  = LED_MASK1;
     
     /* Set row pins to high-drive mode to increase brightness */
     gpio_drive(ROW1, GPIO_DRIVE_S0H1);
@@ -115,18 +115,18 @@ void display_task(int dummy)
     while (1) {
         /* Carefully change LED bits and leave other bits alone */
 #ifdef UBIT_V1
-        GPIO_OUTCLR = 0xfff0;
-        GPIO_OUTSET = display_image[n++];
+        GPIO.OUTCLR = 0xfff0;
+        GPIO.OUTSET = display_image[n++];
         if (n == 3) n = 0;
 #endif
 
 #ifdef UBIT_V2
         /* To avoid ghosting, clear GPIO0 (which contains the row bits)
            first and set it last. */
-        GPIO0_OUTCLR = LED_MASK0;
-        GPIO1_OUTCLR = LED_MASK1;
-        GPIO1_OUTSET = display_image[n+1];
-        GPIO0_OUTSET = display_image[n];
+        GPIO0.OUTCLR = LED_MASK0;
+        GPIO1.OUTCLR = LED_MASK1;
+        GPIO1.OUTSET = display_image[n+1];
+        GPIO0.OUTSET = display_image[n];
         n += 2;
         if (n == 10) n = 0;
 #endif

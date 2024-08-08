@@ -1,17 +1,22 @@
 # x07-hack/Makefile
 # Copyright (c) 2020-21 J. M. Spivey
-
-# genmake x07-hack {total.hex attack squirt} hack lib.o
+# genmake x07-hack {total.hex attack squirt} hack hack lib.o
 
 all: total.hex attack squirt
 
 CC = arm-none-eabi-gcc
-CPU = -mcpu=cortex-m4 -mthumb
-CFLAGS = -O -g -Wall -ffreestanding
 AS = arm-none-eabi-as
 LD = arm-none-eabi-ld
+AR = arm-none-eabi-ar
 SIZE = arm-none-eabi-size
 OBJCOPY = arm-none-eabi-objcopy
+
+CPU = -mcpu=cortex-m4 -mthumb
+CFLAGS = -O -g -Wall -ffreestanding
+DEPS = lib.o
+STARTUP = startup.o
+LIBS = -lgcc
+LDSCRIPT = nRF52833.ld
 
 %.o: %.c
 	$(CC) $(CPU) $(CFLAGS) $(INCLUDE) -c $< -o $@
@@ -19,9 +24,9 @@ OBJCOPY = arm-none-eabi-objcopy
 %.o: %.s
 	$(AS) $(CPU) $< -o $@
 
-%.elf: %.o lib.o startup.o
-	$(CC) $(CPU) $(CFLAGS) -T nRF52833.ld \
-		$^ -nostdlib -lgcc -o $@ -Wl,-Map,$*.map
+%.elf: %.o $(DEPS) $(STARTUP)
+	$(CC) $(CPU) $(CFLAGS) -T $(LDSCRIPT) \
+		$^ -nostdlib $(LIBS) -o $@ -Wl,-Map,$*.map
 	$(SIZE) $@
 
 %.hex: %.elf
@@ -34,7 +39,7 @@ attack: attack.o
 squirt: squirt.c
 	gcc $< -o $@
 
-# Nuke the default rules for building executables
+# Disable the default rules for building executables
 SORRY = echo "Please say 'make $@.hex' to compile '$@'"
 %: %.s; @$(SORRY)
 %: %.o; @$(SORRY)

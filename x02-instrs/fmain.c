@@ -13,25 +13,25 @@ int txinit;              /* UART ready to transmit first char */
 /* serial_init -- set up UART connection to host */
 void serial_init(void)
 {
-    UART_ENABLE = UART_ENABLE_Disabled;
-    UART_BAUDRATE = UART_BAUDRATE_9600; /* 9600 baud */
-    UART_CONFIG = FIELD(UART_CONFIG_PARITY, UART_PARITY_None);
+    UART.ENABLE = UART_ENABLE_Disabled;
+    UART.BAUDRATE = UART_BAUDRATE_9600; /* 9600 baud */
+    UART.CONFIG = FIELD(UART_CONFIG_PARITY, UART_PARITY_None);
                                         /* format 8N1 */
-    UART_PSELTXD = TX;                  /* choose pins */
-    UART_PSELRXD = RX;
-    UART_ENABLE = UART_ENABLE_Enabled;
-    UART_STARTTX = 1;
-    UART_STARTRX = 1;
-    UART_RXDRDY = 0;
+    UART.PSELTXD = TX;                  /* choose pins */
+    UART.PSELRXD = RX;
+    UART.ENABLE = UART_ENABLE_Enabled;
+    UART.STARTTX = 1;
+    UART.STARTRX = 1;
+    UART.RXDRDY = 0;
     txinit = 1;
 }
 
 /* serial_getc -- wait for input character and return it */
 int serial_getc(void)
 {
-    while (! UART_RXDRDY) { }
-    char ch = UART_RXD;
-    UART_RXDRDY = 0;
+    while (! UART.RXDRDY) { }
+    char ch = UART.RXD;
+    UART.RXDRDY = 0;
     return ch;
 }
 
@@ -39,11 +39,11 @@ int serial_getc(void)
 void serial_putc(char ch)
 {
     if (! txinit) {
-        while (! UART_TXDRDY) { }
+        while (! UART.TXDRDY) { }
     }
     txinit = 0;
-    UART_TXDRDY = 0;
-    UART_TXD = ch;
+    UART.TXDRDY = 0;
+    UART.TXD = ch;
 }
 
 /* serial_puts -- send a string character by character */
@@ -150,14 +150,14 @@ unsigned easy_mod(unsigned a, unsigned b)
 void clock_init(void)
 {
     /* Set up TIMER0 in 32 bit mode */
-    TIMER0_MODE = TIMER_MODE_Timer;
-    TIMER0_BITMODE = TIMER_BITMODE_32Bit;
-    TIMER0_PRESCALER = 0; /* Count at 16MHz */
-    TIMER0_START = 1;
+    TIMER0.MODE = TIMER_MODE_Timer;
+    TIMER0.BITMODE = TIMER_BITMODE_32Bit;
+    TIMER0.PRESCALER = 0; /* Count at 16MHz */
+    TIMER0.START = 1;
 }    
 
-#define clock_start()  TIMER0_CLEAR = 1
-#define clock_stop()   (TIMER0_CAPTURE[0] = 1, TIMER0_CC[0])
+#define clock_start()  TIMER0.CLEAR = 1
+#define clock_stop()   (TIMER0.CAPTURE[0] = 1, TIMER0.CC[0])
         
 #define FUDGE 9                 /* ticks of overhead for function call */
 #define MULT 1                  /* clock cycles per tick */
@@ -168,12 +168,12 @@ void clock_init(void)
 void clock_init(void)
 {
     /* Enable the cycle counter, part of the data watchpoint and trace module */
-    SET_BIT(DEBUG_DEMCR, DEBUG_DEMCR_TRCENA);
-    SET_BIT(DWT_CTRL, DWT_CTRL_CYCCNTENA);
+    SET_BIT(DEBUG.DEMCR, DEBUG_DEMCR_TRCENA);
+    SET_BIT(DWT.CTRL, DWT_CTRL_CYCCNTENA);
 }
 
-#define clock_start()  DWT_CYCCNT = 0
-#define clock_stop()   DWT_CYCCNT
+#define clock_start()  DWT.CYCCNT = 0
+#define clock_stop()   DWT.CYCCNT
 
 #define FUDGE 5
 #define MULT 1

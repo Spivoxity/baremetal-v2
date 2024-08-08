@@ -528,8 +528,8 @@ int start(char *name, void (*body)(int), int arg, int stksize)
     return p->pid;
 }
 
-/* set_stack -- enter thread mode with specified stack (see mpx.s) */
-void set_stack(unsigned *sp);
+/* __run -- enter thread mode with specified stack (see mpx.s) */
+void __run(void (*task)(void), unsigned *sp);
 
 /* init -- main program, creates application processes */
 void init(void);
@@ -539,6 +539,9 @@ void init(void);
 /* idle_task -- body of the idle process */
 void idle_task(void)
 {
+    /* Allow genuine processes to run */
+    yield();
+
     /* Idle only runs again when there's nothing to do. */
     while (1) pause();
 }
@@ -557,10 +560,7 @@ void __start(void)
     /* The main program morphs into the idle process. */
     os_current = idle_proc;
     DEBUG_SCHED(0);
-    set_stack(os_current->sp);
-    yield();
-
-    idle_task();
+    __run(idle_task, os_current->sp);
 }
 
 
@@ -644,11 +644,43 @@ unsigned *cxt_switch(unsigned *psp)
 
 /* SYSTEM CALL STUBS */
 
-/* Assembly-language stubs for each system call are in mpx-???.s: they
-depend on finding their arguments in the correct registers, and not
-optimised away as van happen with recent versions of GCC.  Below are a
-few convenience routines for sending messages with no attached data,
-or with a single integer or pointer. */
+/* These stubs are written using the 'naked' attribute so as to
+prevent GCC's optimiser from messing them up.  Without it, the
+assembly instructions would need to be laboriously annotated with
+what registers and memory they read and write. */
+
+#define SYSCALL      __attribute__((naked))
+#define syscall(op)  asm ("svc %0; bx lr" : : "i"(op))
+
+void SYSCALL yield(void)
+{
+    syscall(SYS_YIELD);
+}
+
+void SYSCALL send(int dest, message *msg)
+{
+    syscall(SYS_SEND);
+}
+
+void SYSCALL receive(int type, message *msg)
+{
+    syscall(SYS_RECEIVE);
+}
+
+void SYSCALL sendrec(int dest, message *msg)
+{
+    syscall(SYS_SENDREC);
+}
+
+void SYSCALL exit(void)
+{
+    syscall(SYS_EXIT);
+}
+
+void SYSCALL dump(void)
+{
+    syscall(SYS_DUMP);
+}
 
 void send_msg(int dest, int type)
 {
@@ -694,23 +726,23 @@ static void kprintf_setup(void)
     gpio_out(USB_TX, 1);
 
     /* Reconfigure the UART just to be sure */
-    UART_ENABLE = UART_ENABLE_Disabled;
-    UART_BAUDRATE = UART_BAUDRATE_9600; /* 9600 baud */
-    UART_CONFIG = FIELD(UART_CONFIG_PARITY, UART_PARITY_None);
+    UART.ENABLE = UART_ENABLE_Disabled;
+    UART.BAUDRATE = UART_BAUDRATE_9600; /* 9600 baud */
+    UART.CONFIG = FIELD(UART_CONFIG_PARITY, UART_PARITY_None);
                                         /* format 8N1 */
-    UART_PSELTXD = TX;                  /* choose pins */
-    UART_PSELRXD = RX;
-    UART_ENABLE = UART_ENABLE_Enabled;
-    UART_TXDRDY = 0;
-    UART_STARTTX = 1;
+    UART.PSELTXD = TX;                  /* choose pins */
+    UART.PSELRXD = RX;
+    UART.ENABLE = UART_ENABLE_Enabled;
+    UART.TXDRDY = 0;
+    UART.STARTTX = 1;
 }
 
 /* kputc -- send output character */
 static void kputc(char ch)
 {
-    UART_TXD = ch;
-    while (! UART_TXDRDY) { }
-    UART_TXDRDY = 0;
+    UART.TXD = ch;
+    while (! UART.TXDRDY) { }
+    UART.TXDRDY = 0;
 }
 
 

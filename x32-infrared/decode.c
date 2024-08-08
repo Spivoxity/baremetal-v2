@@ -1,4 +1,4 @@
-/* x32-infrared/decode.c *
+/* x32-infrared/decode.c */
 /* Copyright (c) 2020 J. M. Spivey */
 
 #include "microbian.h"
@@ -20,11 +20,8 @@ static unsigned command;
 
 static void reply(void)
 {
-    message m;
-
     if (client < 0) return;
-    m.int1 = command;
-    send(client, REPLY, &m);
+    send_int(client, REPLY, command);
     client = -1;
 }
  
@@ -160,7 +157,8 @@ void main_task(int arg)
     message m;
 
     while (1) {
-        sendrec(IR_TASK, READ, &m);
+        m.type = READ;
+        sendrec(IR_TASK, &m);
         cmd = m.int1;
         if (GET_BYTE(cmd, 2) != (GET_BYTE(cmd, 3) ^ 0xff))
             printf("wrong address!\n");

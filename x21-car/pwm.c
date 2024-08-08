@@ -38,41 +38,41 @@ static void pwm_setup(void)
     gpio_dir(PAD1, 1); gpio_dir(PAD2, 1);
 
     /* GPIOTE channels 0 and 1 toggle the two pins */
-    GPIOTE_CONFIG[0] =
+    GPIOTE.CONFIG[0] =
         FIELD(GPIOTE_CONFIG_MODE, GPIOTE_MODE_Task)
         | FIELD(GPIOTE_CONFIG_PSEL, PAD1)
         | FIELD(GPIOTE_CONFIG_POLARITY, GPIOTE_POLARITY_Toggle)
         | FIELD(GPIOTE_CONFIG_OUTINIT, 0);
-    GPIOTE_CONFIG[1] =
+    GPIOTE.CONFIG[1] =
         FIELD(GPIOTE_CONFIG_MODE, GPIOTE_MODE_Task)
         | FIELD(GPIOTE_CONFIG_PSEL, PAD2)
         | FIELD(GPIOTE_CONFIG_POLARITY, GPIOTE_POLARITY_Toggle)
         | FIELD(GPIOTE_CONFIG_OUTINIT, 0);
 
     /* Set up timer 2 to count at 1MHz and reset at 20000 counts */
-    TIMER2_STOP = 1;
-    TIMER2_MODE = TIMER_MODE_Timer;
-    TIMER2_BITMODE = TIMER_BITMODE_16Bit;
-    TIMER2_PRESCALER = 4;       /* 1MHz=16MHz / 2^4 */
-    TIMER2_CLEAR = 1;
-    TIMER2_CC[0] = 65535;
-    TIMER2_CC[1] = 65535;
-    TIMER2_CC[2] = 20000;
-    TIMER2_SHORTS = BIT(TIMER_COMPARE2_CLEAR);
+    TIMER2.STOP = 1;
+    TIMER2.MODE = TIMER_MODE_Timer;
+    TIMER2.BITMODE = TIMER_BITMODE_16Bit;
+    TIMER2.PRESCALER = 4;       /* 1MHz=16MHz / 2^4 */
+    TIMER2.CLEAR = 1;
+    TIMER2.CC[0] = 65535;
+    TIMER2.CC[1] = 65535;
+    TIMER2.CC[2] = 20000;
+    TIMER2.SHORTS = BIT(TIMER_COMPARE2_CLEAR);
 
     /* PPI channels 0 and 2 toggle pin 1; channels 1 and 3 toggle the other */
-    PPI_CH[0].EEP = &TIMER2_COMPARE[2];
-    PPI_CH[0].TEP = &GPIOTE_OUT[0];
-    PPI_CH[1].EEP = &TIMER2_COMPARE[2];
-    PPI_CH[1].TEP = &GPIOTE_OUT[1];
-    PPI_CH[2].EEP = &TIMER2_COMPARE[0];
-    PPI_CH[2].TEP = &GPIOTE_OUT[0];
-    PPI_CH[3].EEP = &TIMER2_COMPARE[1];
-    PPI_CH[3].TEP = &GPIOTE_OUT[1];
-    PPI_CHENSET = BIT(2) | BIT(3);
+    PPI.CH[0].EEP = &TIMER2.COMPARE[2];
+    PPI.CH[0].TEP = &GPIOTE.OUT[0];
+    PPI.CH[1].EEP = &TIMER2.COMPARE[2];
+    PPI.CH[1].TEP = &GPIOTE.OUT[1];
+    PPI.CH[2].EEP = &TIMER2.COMPARE[0];
+    PPI.CH[2].TEP = &GPIOTE.OUT[0];
+    PPI.CH[3].EEP = &TIMER2.COMPARE[1];
+    PPI.CH[3].TEP = &GPIOTE.OUT[1];
+    PPI.CHENSET = BIT(2) | BIT(3);
 
     /* Start your engines! */
-    TIMER2_START = 1;
+    TIMER2.START = 1;
 }
 
 static volatile unsigned width[2];
@@ -81,11 +81,11 @@ static volatile unsigned width[2];
 void timer2_handler(void)
 {
     /* Set the CC registers to their new values */
-    TIMER2_CC[0] = width[0];
-    TIMER2_CC[1] = width[1];
+    TIMER2.CC[0] = width[0];
+    TIMER2.CC[1] = width[1];
 
     /* No more interrupts needed */
-    TIMER2_INTENCLR = BIT(TIMER_INT_COMPARE2);
+    TIMER2.INTENCLR = BIT(TIMER_INT_COMPARE2);
 
     /* Wake up the driver process */
     interrupt(PWM_TASK);
@@ -96,11 +96,11 @@ static void set_width(int chan, int wid)
     if (wid >= 5) {
         /* Genuine pulses: enable the start-of-pulse transition and set width */
         width[chan] = wid;
-        PPI_CHENSET = BIT(chan);
+        PPI.CHENSET = BIT(chan);
     } else {
         /* No pulses: disable pulse start, and set impossible width; */
         width[chan] = 65535;
-        PPI_CHENCLR = BIT(chan);
+        PPI.CHENCLR = BIT(chan);
     }
 }
 
@@ -120,9 +120,9 @@ static void pwm_task(int arg)
             set_width(1, m.int2);
 
             /* Enable an interrupt to update the timer */
-            TIMER2_COMPARE[2] = 0;
+            TIMER2.COMPARE[2] = 0;
             clear_pending(TIMER2_IRQ);
-            TIMER2_INTENSET = BIT(TIMER_INT_COMPARE2);
+            TIMER2.INTENSET = BIT(TIMER_INT_COMPARE2);
             enable_irq(TIMER2_IRQ);
             receive(INTERRUPT, NULL);
             send_msg(client, REPLY);

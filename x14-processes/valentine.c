@@ -27,8 +27,8 @@ void show(const unsigned *img, int n)
     while (n-- > 0) {
         /* Takes 15msec per iteration */
         for (int p = 0; p < 10; p += 2) {
-            GPIO0_OUT = img[p];
-            GPIO1_OUT = img[p+1];
+            GPIO0.OUT = img[p];
+            GPIO1.OUT = img[p+1];
             timer_delay(3);
         }
     }
@@ -37,8 +37,8 @@ void show(const unsigned *img, int n)
 /* heart_task -- show beating heart */
 void heart_task(int n)
 {
-    GPIO0_DIRSET = LED_MASK0;
-    GPIO1_DIRSET = LED_MASK1;
+    GPIO0.DIRSET = LED_MASK0;
+    GPIO1.DIRSET = LED_MASK1;
 
     /* Set row pins to high-drive mode to increase brightness */
     gpio_drive(ROW1, GPIO_DRIVE_S0H1);

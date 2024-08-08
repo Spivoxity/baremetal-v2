@@ -42,18 +42,18 @@ char buf_get(void)
 /* serial_init -- set up UART connection to host */
 void serial_init(void)
 {
-    UART_ENABLE = UART_ENABLE_Disabled;
-    UART_BAUDRATE = UART_BAUDRATE_9600; /* 9600 baud */
-    UART_CONFIG = FIELD(UART_CONFIG_PARITY, UART_PARITY_None);
+    UART.ENABLE = UART_ENABLE_Disabled;
+    UART.BAUDRATE = UART_BAUDRATE_9600; /* 9600 baud */
+    UART.CONFIG = FIELD(UART_CONFIG_PARITY, UART_PARITY_None);
                                         /* format 8N1 */
-    UART_PSELTXD = TX;                  /* choose pins */
-    UART_PSELRXD = RX;
-    UART_ENABLE = UART_ENABLE_Enabled;
-    UART_TXDRDY = 0;
-    UART_STARTTX = 1;
+    UART.PSELTXD = TX;                  /* choose pins */
+    UART.PSELRXD = RX;
+    UART.ENABLE = UART_ENABLE_Enabled;
+    UART.TXDRDY = 0;
+    UART.STARTTX = 1;
     
     /* Interrupt for transmit only */
-    UART_INTENSET = BIT(UART_INT_TXDRDY);
+    UART.INTENSET = BIT(UART_INT_TXDRDY);
     enable_irq(UART_IRQ);
     txidle = 1;
 }
@@ -61,12 +61,12 @@ void serial_init(void)
 /* uart_handler -- interrupt handler for UART */
 void uart_handler(void)
 {
-    if (UART_TXDRDY) {
-        UART_TXDRDY = 0;
+    if (UART.TXDRDY) {
+        UART.TXDRDY = 0;
         if (bufcnt == 0)
             txidle = 1;
         else
-            UART_TXD = buf_get();
+            UART.TXD = buf_get();
     }
 }
 
@@ -77,7 +77,7 @@ void serial_putc(char ch)
 
     intr_disable();
     if (txidle) {
-        UART_TXD = ch;
+        UART.TXD = ch;
         txidle = 0;
     } else {
         buf_put(ch);
@@ -119,10 +119,10 @@ void start_timer(void)
 {
     led_dot();
 
-    TIMER0_MODE = TIMER_MODE_Timer;
-    TIMER0_BITMODE = TIMER_BITMODE_32Bit;
-    TIMER0_PRESCALER = 4; /* Count at 1MHz */
-    TIMER0_START = 1;
+    TIMER0.MODE = TIMER_MODE_Timer;
+    TIMER0.BITMODE = TIMER_BITMODE_32Bit;
+    TIMER0.PRESCALER = 4; /* Count at 1MHz */
+    TIMER0.START = 1;
 }
 
 /* stop_timer -- turn off LED, drain the output buffer and print timer result */
@@ -130,11 +130,11 @@ void stop_timer(void)
 {
     led_off();
 
-    TIMER0_CAPTURE[0] = 1;
+    TIMER0.CAPTURE[0] = 1;
     while (bufcnt > 0) pause(); /* Wait until buffer empties */
-    TIMER0_CAPTURE[1] = 1;
-    unsigned time1 = TIMER0_CC[0];
-    unsigned time2 = TIMER0_CC[1];
+    TIMER0.CAPTURE[1] = 1;
+    unsigned time1 = TIMER0.CC[0];
+    unsigned time2 = TIMER0.CC[1];
     printf("%d+%d millisec\n",
            (time1+500)/1000, (time2-time1+500)/1000);
 }

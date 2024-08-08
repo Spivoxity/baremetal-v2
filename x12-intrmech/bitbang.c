@@ -8,19 +8,19 @@ void rng_init(void)
 {
     /* Setting the DERCEN bit enables the bias elimination algorithm,
        and makes the intervals between random bytes irregular. */
-    SET_BIT(RNG_CONFIG, RNG_CONFIG_DERCEN);
-    RNG_VALRDY = 0;
-    RNG_INTENSET = BIT(RNG_INT_VALRDY);
+    SET_BIT(RNG.CONFIG, RNG_CONFIG_DERCEN);
+    RNG.VALRDY = 0;
+    RNG.INTENSET = BIT(RNG_INT_VALRDY);
     enable_irq(RNG_IRQ);
-    RNG_START = 1;
+    RNG.START = 1;
 }
 
 /* rng_handler -- interrupt handler for random number generator */
 void rng_handler(void)
 {
-    if (RNG_VALRDY) {
+    if (RNG.VALRDY) {
         gpio_out(PAD1, 1);
-        RNG_VALRDY = 0;         /* Just acknowledge the interrupt */
+        RNG.VALRDY = 0;         /* Just acknowledge the interrupt */
         gpio_out(PAD1, 0);
     }
 }

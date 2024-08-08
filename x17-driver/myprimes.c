@@ -31,10 +31,10 @@ void start_timer(void)
     led_dot();
 
     /* Start a timer */
-    TIMER0_MODE = TIMER_MODE_Timer;
-    TIMER0_BITMODE = TIMER_BITMODE_32Bit;
-    TIMER0_PRESCALER = 4; /* Count at 1MHz */
-    TIMER0_START = 1;
+    TIMER0.MODE = TIMER_MODE_Timer;
+    TIMER0.BITMODE = TIMER_BITMODE_32Bit;
+    TIMER0.PRESCALER = 4; /* Count at 1MHz */
+    TIMER0.START = 1;
 }
 
 void stop_timer(void)
@@ -43,8 +43,8 @@ void stop_timer(void)
     led_off();
 
     /* Fetch timer result */
-    TIMER0_CAPTURE[0] = 1;
-    unsigned time = TIMER0_CC[0];
+    TIMER0.CAPTURE[0] = 1;
+    unsigned time = TIMER0.CC[0];
     printf("%d millisec\n", (time+500)/1000);
 }
 

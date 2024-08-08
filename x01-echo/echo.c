@@ -33,25 +33,25 @@ int txinit;              /* UART ready to transmit first char */
 /* serial_init -- set up UART connection to host */
 void serial_init(void)
 {
-    UART_ENABLE = UART_ENABLE_Disabled;
-    UART_BAUDRATE = UART_BAUDRATE_9600; /* 9600 baud */
-    UART_CONFIG = FIELD(UART_CONFIG_PARITY, UART_PARITY_None);
+    UART.ENABLE = UART_ENABLE_Disabled;
+    UART.BAUDRATE = UART_BAUDRATE_9600; /* 9600 baud */
+    UART.CONFIG = FIELD(UART_CONFIG_PARITY, UART_PARITY_None);
                                         /* format 8N1 */
-    UART_PSELTXD = TX;                  /* choose pins */
-    UART_PSELRXD = RX;
-    UART_ENABLE = UART_ENABLE_Enabled;
-    UART_STARTTX = 1;
-    UART_STARTRX = 1;
-    UART_RXDRDY = 0;
+    UART.PSELTXD = TX;                  /* choose pins */
+    UART.PSELRXD = RX;
+    UART.ENABLE = UART_ENABLE_Enabled;
+    UART.STARTTX = 1;
+    UART.STARTRX = 1;
+    UART.RXDRDY = 0;
     txinit = 1;
 }
 
 /* serial_getc -- wait for input character and return it */
 int serial_getc(void)
 {
-    while (! UART_RXDRDY) { }
-    char ch = UART_RXD;
-    UART_RXDRDY = 0;
+    while (! UART.RXDRDY) { }
+    char ch = UART.RXD;
+    UART.RXDRDY = 0;
     return ch;
 }
 
@@ -59,11 +59,11 @@ int serial_getc(void)
 void serial_putc(char ch)
 {
     if (! txinit) {
-        while (! UART_TXDRDY) { }
+        while (! UART.TXDRDY) { }
     }
     txinit = 0;
-    UART_TXDRDY = 0;
-    UART_TXD = ch;
+    UART.TXDRDY = 0;
+    UART.TXD = ch;
 }
 
 /* serial_puts -- send a string character by character */

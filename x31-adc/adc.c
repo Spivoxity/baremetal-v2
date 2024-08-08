@@ -90,8 +90,7 @@ static void adc_task(int dummy)
         enable_irq(ADC_IRQ);
 
         /* Reply to the client */
-        m.int1 = result;
-        send(client, REPLY, &m);
+        send_int(client, REPLY, result);
     }
 }
 
@@ -122,8 +121,9 @@ int adc_reading(int pin)
     if (chan < 0)
         panic("Can't use pin %d for ADC", pin);
 
+    m.type = REQUEST;
     m.int1 = chan;
-    sendrec(ADC_TASK, REQUEST, &m);
+    sendrec(ADC_TASK, &m);
     return m.int1;
 }
 

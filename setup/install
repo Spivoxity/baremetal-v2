@@ -2,11 +2,9 @@
 
 # Setup script for Bare Metal micro:bit.  The tasks:
 # 1. Install Raspi OS packages that are needed.
-# 2. Install enhanced version of Geany.
-# 3. Install a recent version of Pyocd.
-# 4. Create a file association for Geany project files.
-# 5. Adjust various preferences.
-# 6. Generate Geany project files for each experiment.
+# 2. Create a file association for Geany project files.
+# 3. Adjust various preferences.
+# 4. Generate Geany project files for each experiment.
 
 # Make sure the shell is bash.
 if [ x$BASH_VERSION = x ]; then exec /bin/bash $0; fi
@@ -14,35 +12,18 @@ if [ x$BASH_VERSION = x ]; then exec /bin/bash $0; fi
 # Make sure we're not running as root
 if [ $(whoami) = root ]; then /bin/echo "Please don't run as root"; exit 1; fi
 
-web=https://github.com/Spivoxity/geany-mods-1.37/releases/download/rel-1
 arch=$(dpkg --print-architecture)
 dir=$(dirname $0)
 
 cd $dir
 
-case $arch in
-    amd64|i386|armhf)
-        /bin/echo "Installing for architecture $arch ..."; /bin/echo;;
-    *)
-        /bin/echo "Can't install for architecture $arch"
-        exit 1
-esac
-
-/bin/echo "*** Adding APT repository"
-sudo /bin/cp geany-mods.list /etc/apt/sources.list.d/geany-mods.list
-sudo apt-key add geany-mods.gpg.key
-sudo apt-get update
-
 /bin/echo "*** Installing packages"
 sudo apt-get -y install \
      geany geany-plugin-projectorganizer \
-     gcc-arm-none-eabi gdb-multiarch \
+     gcc-arm-none-eabi gdb-multiarch python3-pyocd \
      pulseview sigrok-firmware-fx2lafw minicom \
-     python3-pip bsdmainutils sed
-/bin/echo
-
-/bin/echo "*** Installing pyocd"
-sudo pip3 install pyocd
+     bsdextrautils sed
+# bsdextrautils for hexdump
 /bin/echo
 
 /bin/echo "*** Associating project files with Geany"
@@ -69,6 +50,11 @@ set-option $geanyexts Extensions GnuARM '*.s;*.S;'
 
 /bin/echo "*** Setting preferences for Geany"
 geanyconf=$HOME/.config/geany/geany.conf
+
+# Geany: set number of build menu items
+set-option $geanyconf build-menu number_ft_menu_items 4
+set-option $geanyconf build-menu number_non_ft_menu_items 4
+set-option $geanyconf build-menu number_exec_menu_items 4
 
 # Geany: Disable 'Load files from last session'
 set-option $geanyconf geany pref_main_load_session false

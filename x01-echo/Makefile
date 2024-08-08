@@ -1,17 +1,21 @@
 # x01-echo/Makefile
 # Copyright (c) 2020-21 J. M. Spivey
-
-# genmake x01-echo echo.hex echo {}
+# genmake x01-echo echo.hex echo {use-ld no-gcclib}
 
 all: echo.hex
 
 CC = arm-none-eabi-gcc
-CPU = -mcpu=cortex-m4 -mthumb
-CFLAGS = -O -g -Wall -ffreestanding
 AS = arm-none-eabi-as
 LD = arm-none-eabi-ld
+AR = arm-none-eabi-ar
 SIZE = arm-none-eabi-size
 OBJCOPY = arm-none-eabi-objcopy
+
+CPU = -mcpu=cortex-m4 -mthumb
+CFLAGS = -O -g -Wall -ffreestanding
+STARTUP = startup.o
+LIBS = -lgcc
+LDSCRIPT = nRF52833.ld
 
 %.o: %.c
 	$(CC) $(CPU) $(CFLAGS) $(INCLUDE) -c $< -o $@
@@ -20,14 +24,14 @@ OBJCOPY = arm-none-eabi-objcopy
 	$(AS) $(CPU) $< -o $@
 
 # Use ld for linking to help with the explanation
-%.elf: %.o startup.o
-	$(LD) -T nRF52833.ld $^ -o $@ -Map $*.map
+%.elf: %.o $(DEPS) $(STARTUP)
+	$(LD) -T $(LDSCRIPT) $^ -o $@ -Map $*.map
 	$(SIZE) $@
 
 %.hex: %.elf
 	$(OBJCOPY) -O ihex $< $@
 
-# Nuke the default rules for building executables
+# Disable the default rules for building executables
 SORRY = echo "Please say 'make $@.hex' to compile '$@'"
 %: %.s; @$(SORRY)
 %: %.o; @$(SORRY)

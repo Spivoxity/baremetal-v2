@@ -1,7 +1,6 @@
-/* common/startup.c */
+/* ubit-v2/startup.c */
 /* Copyright (c) 2018 J. M. Spivey */
 
-#define INLINE                  /* Create actual copies of inline functions */
 #include "hardware.h"
 
 /* init -- main program, creates application processes */
@@ -60,10 +59,6 @@ int memcmp(const void *pp, const void *qq, int n)
     return 0;
 }
 
-unsigned volatile * const gpio_base[2] = {
-    GPIO0_BASE, GPIO1_BASE
-};
-
 /* Addresses set by the linker */
 extern unsigned char __xram_start[], __xram_end[],
     __data_start[], __data_end[], __bss_start[], __bss_end[],
@@ -73,12 +68,22 @@ extern unsigned char __xram_start[], __xram_end[],
 void __reset(void)
 {
     /* Activate the crystal clock */
-    CLOCK_HFCLKSTARTED = 0;
-    CLOCK_HFCLKSTART = 1;
-    while (! CLOCK_HFCLKSTARTED) { }
+    CLOCK.HFCLKSTARTED = 0;
+    CLOCK.HFCLKSTART = 1;
+    while (! CLOCK.HFCLKSTARTED) { }
+
+    /* If NFCT pins are reserved, fix it and reset */
+    if (UICR.NFCPINS != 0) {
+        NVMC.CONFIG = NVMC_CONFIG_Wen;
+        UICR.NFCPINS = 0;
+        while (! NVMC.READY) { }
+        NVMC.CONFIG = NVMC_CONFIG_Ronly;
+        sysreset();
+        while (1) { }           // Wait for the reset to take effect
+    }        
 
     /* Enable the instruction cache */
-    SET_BIT(NVMC_ICACHECONF, NVMC_ICACHECONF_CACHEEN);
+    SET_BIT(NVMC.ICACHECONF, NVMC_ICACHECONF_CACHEEN);
 
     /* Copy xram and data segments and zero out bss. */
     int xram_size = __xram_end - __xram_start;
@@ -102,13 +107,95 @@ with integers in the range [0..255]. */
 void irq_priority(int irq, unsigned prio)
 {
     if (irq < 0)
-        SET_BYTE(SCB_SHPR[(irq+8) >> 2], irq & 0x3, prio);
+        SET_BYTE(SCB.SHPR[(irq+8) >> 2], irq & 0x3, prio);
     else
-        SET_BYTE(NVIC_IPR[irq >> 2], irq & 0x3, prio);
+        SET_BYTE(NVIC.IPR[irq >> 2], irq & 0x3, prio);
 }
      
-/* See hardware.h for macros enable_irq, disable_irq, clear_pending, 
-reschedule */
+/* enable_irq -- enable interrupts from an IRQ */
+void enable_irq(int irq)
+{
+    NVIC.ISER[irq >> 5] = BIT(irq & 0x1f);
+}
+
+/* disable_irq -- disable interrupts from a specific IRQ */
+void disable_irq(int irq)
+{
+    NVIC.ICER[irq >> 5] = BIT(irq & 0x1f);
+}
+
+/* clear_pending -- clear pending interrupt from an IRQ */
+void clear_pending(int irq)
+{
+    NVIC.ICPR[irq >> 5] = BIT(irq & 0x1f);
+}
+
+
+/* DEVICE TABLES */
+
+volatile struct _gpio * const GPIO[] = {
+    &GPIO0, &GPIO1
+};
+
+volatile struct _timer * const TIMER[] = {
+    &TIMER0, &TIMER1, &TIMER2, &TIMER3, &TIMER4
+};
+
+volatile struct _i2c * const I2C[] = {
+    &I2C0, &I2C1
+};
+
+volatile struct _spi * const SPI[] = {
+    &SPI0, &SPI1, &SPI2
+};
+
+volatile struct _spim * const SPIM[] = {
+    &SPIM0, &SPIM1, &SPIM2, &SPIM3
+};
+
+volatile struct _uarte * const UARTE[] = {
+    &UARTE0, &UARTE1
+};
+
+volatile struct _pwm * const PWM[] = {
+    &PWM0, &PWM1, &PWM2, &PWM3
+};
+
+
+/* GPIO CONVENIENCE */
+
+/* gpio_dir -- set GPIO direction */
+void gpio_dir(unsigned pin, unsigned dir) {
+    if (dir)
+        GPIO[PORT(pin)]->DIRSET = BIT(PIN(pin));
+    else
+        GPIO[PORT(pin)]->DIRCLR = BIT(PIN(pin));
+}
+ 
+/* gpio_connect -- connect pin for input */
+void gpio_connect(unsigned pin) {
+    SET_FIELD(GPIO[PORT(pin)]->PINCNF[PIN(pin)],
+              GPIO_PINCNF_INPUT, GPIO_INPUT_Connect);
+}
+ 
+/* gpio_drive -- set GPIO drive strength */
+void gpio_drive(unsigned pin, unsigned mode) {
+    SET_FIELD(GPIO[PORT(pin)]->PINCNF[PIN(pin)],
+              GPIO_PINCNF_DRIVE, mode);
+}
+ 
+/* gpio_out -- set GPIO output value */
+void gpio_out(unsigned pin, unsigned value) {
+    if (value)
+        GPIO[PORT(pin)]->OUTSET = BIT(PIN(pin));
+    else
+        GPIO[PORT(pin)]->OUTCLR = BIT(PIN(pin));
+}
+ 
+/* gpio_in -- get GPIO input bit */
+unsigned gpio_in(unsigned pin) {
+    return GET_BIT(GPIO[PORT(pin)]->IN, PIN(pin));
+}
 
 
 /*  INTERRUPT VECTORS */
@@ -149,19 +236,19 @@ void spin(void)
 
     intr_disable();
 
-    GPIO0_DIR = LED_MASK0;
-    GPIO1_DIR = LED_MASK1;
+    GPIO0.DIR = LED_MASK0;
+    GPIO1.DIR = LED_MASK1;
     
     while (1) {
         for (k = 33; k > 0; k--) { /* 0.5s on */
             for (i = 0; i < 6; i += 2) { /* 15ms per loop */
-                GPIO0_OUT = ssod[i];
-                GPIO1_OUT = ssod[i+1];
+                GPIO0.OUT = ssod[i];
+                GPIO1.OUT = ssod[i+1];
                 delay_loop(5000);
             }
         }
-        GPIO0_OUT = 0;
-        GPIO0_OUT = 0;
+        GPIO0.OUT = 0;
+        GPIO0.OUT = 0;
         delay_loop(100000); /* 0.1s off */
     }          
 }
@@ -183,9 +270,9 @@ void systick_handler(void);
 void power_clock_handler(void);
 void radio_handler(void);
 void uart0_handler(void);
-void i2c0_handler(void);
-void i2c1_handler(void);
-void nfc_handler(void);
+void i2c0_spi0_handler(void);
+void i2c1_spi1_handler(void);
+void nfct_handler(void);
 void gpiote_handler(void);
 void adc_handler(void);
 void timer0_handler(void);
@@ -213,14 +300,14 @@ void pdm_handler(void);
 void mwu_handler(void);
 void pwm1_handler(void);
 void pwm2_handler(void);
-void spi0_handler(void);
+void spi2_handler(void);
 void rtc2_handler(void);
 void i2s_handler(void);
 void fpu_handler(void);
 void usbd_handler(void);
 void uart1_handler(void);
 void pwm3_handler(void);
-void spi1_handler(void);
+void spi3_handler(void);
 
 /* This vector table is placed at address 0 in the flash by directives
 in the linker script. */
@@ -247,9 +334,9 @@ void *__vectors[] __attribute((section(".vectors"))) = {
     power_clock_handler,        /*  0 */
     radio_handler,
     uart0_handler,
-    i2c0_handler,
-    i2c1_handler,               /*  4 */
-    nfc_handler,
+    i2c0_spi0_handler,
+    i2c1_spi1_handler,          /*  4 */
+    nfct_handler,
     gpiote_handler,
     adc_handler,
     timer0_handler,             /*  8 */
@@ -279,7 +366,7 @@ void *__vectors[] __attribute((section(".vectors"))) = {
     mwu_handler,                /* 32 */
     pwm1_handler,
     pwm2_handler,
-    spi0_handler,
+    spi2_handler,
     rtc2_handler,               /* 36 */
     i2s_handler,
     fpu_handler,
@@ -291,7 +378,7 @@ void *__vectors[] __attribute((section(".vectors"))) = {
     0,                          /* 44 */
     pwm3_handler,
     0,
-    spi1_handler,
+    spi3_handler,
     0,                          /* 48 */
     0,
     0,

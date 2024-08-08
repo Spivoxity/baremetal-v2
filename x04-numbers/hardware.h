@@ -7,23 +7,23 @@
 /* Hardware register definitions for nRF52833 */
 
 #define BIT(i) (1 << (i))
-#define SET_BIT(reg, n) reg |= BIT(n)
-#define GET_BIT(reg, n) (((reg) >> (n)) & 0x1)
-#define CLR_BIT(reg, n) reg &= ~BIT(n)
-#define GET_BYTE(reg, n) (((reg) >> (8*(n))) & 0xff)
-#define SET_BYTE(reg, n, v) \
-    reg = (reg & ~(0xff << 8*n)) | ((v & 0xff) << 8*n)
+#define SET_BIT(r, n) r |= BIT(n)
+#define GET_BIT(r, n) (((r) >> (n)) & 0x1)
+#define CLR_BIT(r, n) r &= ~BIT(n)
+#define GET_BYTE(r, n) (((r) >> (8*(n))) & 0xff)
+#define SET_BYTE(r, n, v) \
+    r = (r & ~(0xff << 8*n)) | ((v & 0xff) << 8*n)
 
 /* The macros SET_FIELD, etc., are defined in an indirect way that
 permits (because of the timing of CPP macro expansion) the 'field'
 argument to be a macro that expands the a 'position, width' pair. */
 
-#define SET_FIELD(reg, field, val) _SET_FIELD(reg, field, val)
-#define _SET_FIELD(reg, pos, wd, val) \
-    reg = (reg & ~_MASK(pos, wd)) | _FIELD(pos, wd, val)
+#define SET_FIELD(r, field, val) _SET_FIELD(r, field, val)
+#define _SET_FIELD(r, pos, wd, val) \
+    r = (r & ~_MASK(pos, wd)) | _FIELD(pos, wd, val)
 
-#define GET_FIELD(reg, field) _GET_FIELD(reg, field)
-#define _GET_FIELD(reg, pos, wd)  ((reg >> pos) & _MASK0(wd))
+#define GET_FIELD(r, field) _GET_FIELD(r, field)
+#define _GET_FIELD(r, pos, wd)  ((r >> pos) & _MASK0(wd))
 
 #define FIELD(field, val) _FIELD(field, val)
 #define _FIELD(pos, wd, val)  (((val) & _MASK0(wd)) << pos)
@@ -46,40 +46,55 @@ argument to be a macro that expands the a 'position, width' pair. */
 #define PAD0  DEVPIN(0, 2)
 #define PAD1  DEVPIN(0, 3)
 #define PAD2  DEVPIN(0, 4)
-#define USB_TX DEVPIN(0, 6)
-#define I2C0_SCL DEVPIN(0, 8)
 #define PAD9  DEVPIN(0, 9)
 #define PAD8  DEVPIN(0, 10)
 #define PAD7  DEVPIN(0, 11)
-#define   COL2 PAD7
 #define PAD12 DEVPIN(0, 12)
 #define PAD15 DEVPIN(0, 13)
 #define PAD5  DEVPIN(0, 14)
-#define   BUTTON_A PAD5
-#define ROW3 DEVPIN(0, 15)
-#define I2C0_SDA DEVPIN(0, 16)
+#define ROW3  DEVPIN(0, 15)
 #define PAD13 DEVPIN(0, 17)
-#define ROW5 DEVPIN(0, 19)
-#define ROW1 DEVPIN(0, 21)
-#define ROW2 DEVPIN(0, 22)
+#define ROW5  DEVPIN(0, 19)
+#define ROW1  DEVPIN(0, 21)
+#define ROW2  DEVPIN(0, 22)
 #define PAD11 DEVPIN(0, 23)
-#define   BUTTON_B PAD11
-#define ROW4 DEVPIN(0, 24)
+#define ROW4  DEVPIN(0, 24)
 #define PAD19 DEVPIN(0, 26)
-#define   I2C1_SCL PAD19
 #define PAD4  DEVPIN(0, 28)
-#define   COL1 PAD4
 #define PAD10 DEVPIN(0, 30)
-#define   COL5 PAD10
 #define PAD3  DEVPIN(0, 31)
-#define   COL3 PAD3
 
 #define PAD20 DEVPIN(1, 0)
-#define   I2C1_SDA PAD20
 #define PAD16 DEVPIN(1, 2)
 #define PAD6  DEVPIN(1, 5)
-#define   COL4 PAD6
+
+#define COL1 PAD4
+#define COL2 PAD7
+#define COL3 PAD3
+#define COL4 PAD6
+#define COL5 PAD10
+
+#define USB_TX DEVPIN(0, 6)
 #define USB_RX DEVPIN(1, 8)
+
+#define BUTTON_A PAD5
+#define BUTTON_B PAD11
+
+#define I2C0_SDA DEVPIN(0, 16)
+#define I2C0_SCL DEVPIN(0, 8)
+#define I2C1_SCL PAD19
+#define I2C1_SDA PAD20
+
+#define SPI_SCK PAD13
+#define SPI_MISO PAD14
+#define SPI_MOSI PAD15
+
+/* Two I2C busses, one for internal chips (I2C0_SCL, I2C0_SDA),
+   another external (I2C1_SCL, I2C1_SDA); use SPI2 for SPI */
+#define N_I2C 2
+#define I2C_INTERNAL 0
+#define I2C_EXTERNAL 1
+#define SPI_CHAN 2
 
 
 /* Interrupts */
@@ -89,7 +104,9 @@ argument to be a macro that expands the a 'position, width' pair. */
 #define RADIO_IRQ   1
 #define UART0_IRQ   2
 #define I2C0_IRQ    3
+#define SPI0_IRQ    3
 #define I2C1_IRQ    4
+#define SPI1_IRQ    4
 #define GPIOTE_IRQ  6
 #define ADC_IRQ     7
 #define TIMER0_IRQ  8
@@ -104,10 +121,10 @@ argument to be a macro that expands the a 'position, width' pair. */
 #define PWM0_IRQ   28
 #define PWM1_IRQ   33
 #define PWM2_IRQ   34
-#define SPI0_IRQ   35
+#define SPI2_IRQ   35
 #define UART1_IRQ  40
 #define PWM3_IRQ   45
-#define SPI1_IRQ   47
+#define SPI3_IRQ   47
 
 #define N_INTERRUPTS 64
 
@@ -115,123 +132,172 @@ argument to be a macro that expands the a 'position, width' pair. */
 #define UART_IRQ UART0_IRQ
 #define uart_handler uart0_handler
 
+/* Interrupts 3 and 4 are shared between I2C and SPI: we can
+define a handler with either name */
+#define i2c0_handler i2c0_spi0_handler
+#define spi0_handler i2c0_spi0_handler
+#define i2c1_handler i2c0_spi1_handler
+#define spi1_handler i2c0_spi1_handler
+
 
 /* Device registers */
-#define _BASE(addr) ((unsigned volatile *) addr)
-#define _REG(ty, addr) (* (ty volatile *) addr)
-#define _ARR(ty, addr) ((ty volatile *) addr)
+#define _PADDING(n) unsigned char _PAD(__LINE__)[n];
+#define _PAD(lnum) _JOIN(_pad, lnum)
+#define _JOIN(x, y) x##y
+
 
 /* Common layout for DMA parameters */
 typedef struct {
     void *PTR;
     unsigned MAXCNT;
     unsigned AMOUNT;
+    unsigned LIST;      /* Used for SPIM */
 } dma_param;
 
 
 /* System contol block */
-
-#define SCB_BASE                        _BASE(0xe000ed00)
-#define SCB_CPUID                       _REG(unsigned, 0xe000ed00)
-#define SCB_ICSR                        _REG(unsigned, 0xe000ed04)
+struct _scb {
+    unsigned CPUID;                     // 0x00
+    unsigned ICSR;                      // 0x04
 #define   SCB_ICSR_PENDSVSET __BIT(28)
 #define   SCB_ICSR_VECTACTIVE __FIELD(0, 8)
-#define SCB_SCR                         _REG(unsigned, 0xe000ed10)
+    _PADDING(4)
+    unsigned AIRCR;                     // 0x0c
+#define   SCB_AIRCR_VECTRESET __BIT(0)
+#define   SCB_AIRCR_VECTCLRACTIVE __BIT(1)
+#define   SCB_AIRCR_SYSRESETREQ __BIT(2)
+#define   SCB_AIRCR_PRIGROUP __FIELD(8, 3)
+#define   SCB_AIRCR_ENDIANESS __FIELD(15, 1)
+#define   SCB_AIRCR_VECTKEY __FIELD(16, 16)
+    unsigned SCR;                       // 0x10
 #define   SCB_SCR_SLEEPONEXIT __BIT(1)
 #define   SCB_SCR_SLEEPDEEP __BIT(2)
 #define   SCB_SCR_SEVONPEND __BIT(4)
-#define SCB_SHPR                        _ARR(unsigned, 0xe000ed18)
+    _PADDING(4)
+    unsigned SHPR[3];                   // 0x18
+};
+
+extern volatile struct _scb SCB;
 
 
 /* Debug */
-
-#define DEBUG_BASE                      _BASE(0xe000ed00)
-#define DEBUG_DEMCR                     _REG(unsigned, 0xe000edfc)
+struct _debug {
+    _PADDING(252)
+    unsigned DEMCR;                     // 0xfc
 #define   DEBUG_DEMCR_TRCENA __BIT(24)
+};
+
+extern volatile struct _debug DEBUG;
 
 
 /* Nested vectored interupt controller */
+struct _nvic {
+    _PADDING(256)
+    unsigned ISER[8];                   // 0x100
+    _PADDING(96)
+    unsigned ICER[8];                   // 0x180
+    _PADDING(96)
+    unsigned ISPR[8];                   // 0x200
+    _PADDING(96)
+    unsigned ICPR[8];                   // 0x280
+    _PADDING(352)
+    unsigned IPR[60];                   // 0x400
+};
 
-#define NVIC_BASE                       _BASE(0xe000e000)
-#define NVIC_ISER                       _ARR(unsigned, 0xe000e100)
-#define NVIC_ICER                       _ARR(unsigned, 0xe000e180)
-#define NVIC_ISPR                       _ARR(unsigned, 0xe000e200)
-#define NVIC_ICPR                       _ARR(unsigned, 0xe000e280)
-#define NVIC_IPR                        _ARR(unsigned, 0xe000e400)
+extern volatile struct _nvic NVIC;
 
 
 /* Systick timer */
-
-#define SYSTICK_CLOCK 64000000
-
-#define SYSTICK_BASE                    _BASE(0xe000e000)
-#define SYSTICK_CSR                     _REG(unsigned, 0xe000e010)
+struct _systick {
+    _PADDING(16)
+    unsigned CSR;                       // 0x010
 #define   SYSTICK_CSR_COUNTFLAG __BIT(16)
 #define   SYSTICK_CSR_CLKSOURCE __FIELD(2, 1)
 #define     SYSTICK_CLKSOURCE_External 0
 #define     SYSTICK_CLKSOURCE_Internal 1
 #define   SYSTICK_CSR_TICKINT __BIT(1)
 #define   SYSTICK_CSR_ENABLE __BIT(0)
-#define SYSTICK_RVR                     _REG(unsigned, 0xe000e014)
-#define SYSTICK_CVR                     _REG(unsigned, 0xe000e018)
-#define SYSTICK_CALIB                   _REG(unsigned, 0xe000e01c)
+    unsigned RVR;                       // 0x014
+    unsigned CVR;                       // 0x018
+    unsigned CALIB;                     // 0x1c
 #define   SYSTICK_CALIB_NOREF __BIT(31)
 #define   SYSTICK_CALIB_SKEW __BIT(30)
 #define   SYSTICK_CALIB_TENMS __FIELD(0, 24)
+};
+
+#define SYSTICK_CLOCK 64000000
+
+extern volatile struct _systick SYSTICK;
 
 
 /* Data watchpoint and trace */
-
-#define DWT_BASE                        _BASE(0xe0001000)
-#define DWT_CTRL                        _REG(unsigned, 0xe0001000)
+struct _dwt {
+    unsigned CTRL;                      // 0x000
 #define   DWT_CTRL_CYCCNTENA __BIT(0)
-#define DWT_CYCCNT                      _REG(unsigned, 0xe0001004)
+    unsigned CYCCNT;                    // 0x004
+};
+
+extern volatile struct _dwt DWT;
 
 
 /* Clock control */
-
-#define CLOCK_BASE                      _BASE(0x40000000)
-#define CLOCK_HFCLKSTART                _REG(unsigned, 0x40000000)
-#define CLOCK_LFCLKSTART                _REG(unsigned, 0x40000008)
-#define CLOCK_HFCLKSTARTED              _REG(unsigned, 0x40000100)
-#define CLOCK_LFCLKSTARTED              _REG(unsigned, 0x40000104)
-#define CLOCK_LFCLKSRC                  _REG(unsigned, 0x40000518)
+struct _clock {
+    unsigned HFCLKSTART;                // 0x000
+    _PADDING(4)
+    unsigned LFCLKSTART;                // 0x008
+    _PADDING(244)
+    unsigned HFCLKSTARTED;              // 0x100
+    unsigned LFCLKSTARTED;              // 0x104
+    _PADDING(1040)
+    unsigned LFCLKSRC;                  // 0x518
 #define   CLOCK_LFCLKSRC_RC 0
-#define CLOCK_XTALFREQ                  _REG(unsigned, 0x40000550)
+    _PADDING(52)
+    unsigned XTALFREQ;                  // 0x550
 #define   CLOCK_XTALFREQ_16MHz 0xFF
+};
+
+extern volatile struct _clock CLOCK;
 
 
 /* Memory protection unit */
+struct _mpu {
+    _PADDING(1544)
+    unsigned DISABLEINDEBUG;            // 0x608
+};
 
-#define MPU_BASE                        _BASE(0x40000000)
-#define MPU_DISABLEINDEBUG              _REG(unsigned, 0x40000608)
+extern volatile struct _mpu MPU;
 
 
 /* Factory information */
-
-#define FICR_BASE                       _BASE(0x10000000)
-#define FICR_DEVICEID                   _ARR(unsigned, 0x10000060)
-#define FICR_DEVICEADDR                 _ARR(unsigned, 0x100000a4)
-#define FICR_OVERRIDEEN                 _REG(unsigned, 0x100000a0)
+struct _ficr {
+    _PADDING(96)
+    unsigned DEVICEID[2];               // 0x060
+    _PADDING(60)
+    unsigned DEVICEADDR[2];             // 0x0a4
+    unsigned OVERRIDEEN;                // 0x0a0
 #define   FICR_OVERRIDEEN_NRF __BIT(0)
-#define FICR_NRF_1MBIT                  _ARR(unsigned, 0x100000b0)
+    _PADDING(12)
+    unsigned NRF_1MBIT[5];              // 0x0b0
+};
+
+extern volatile struct _ficr FICR;
 
 
 /* Power management */
-
-/* Interrupts */
-#define POWER_INT_POFWARN 2
-
-#define POWER_BASE                      _BASE(0x40000000)
+struct _power {
 /* Tasks */
-#define POWER_CONSTLAT                  _REG(unsigned, 0x40000078)
-#define POWER_LOWPWR                    _REG(unsigned, 0x4000007c)
+    _PADDING(120)
+    unsigned CONSTLAT;                  // 0x078
+    unsigned LOWPWR;                    // 0x07c
 /* Events */
-#define POWER_POFWARN                   _REG(unsigned, 0x40000108)
+    _PADDING(136)
+    unsigned POFWARN;                   // 0x108
 /* Registers */
-#define POWER_INTENSET                  _REG(unsigned, 0x40000304)
-#define POWER_INTENCLR                  _REG(unsigned, 0x40000308)
-#define POWER_RESETREAS                 _REG(unsigned, 0x40000400)
+    _PADDING(504)
+    unsigned INTENSET;                  // 0x304
+    unsigned INTENCLR;                  // 0x308
+    _PADDING(244)
+    unsigned RESETREAS;                 // 0x400
 #define   POWER_RESETREAS_RESETPIN __BIT(0)
 #define   POWER_RESETREAS_DOG __BIT(1)
 #define   POWER_RESETREAS_SREQ __BIT(2)
@@ -240,69 +306,113 @@ typedef struct {
 #define   POWER_RESETREAS_LPCOMP __BIT(17)
 #define   POWER_RESETREAS_DIF _BIT(18)
 #define   POWER_RESETREAS_ALL 0x0007000f
-#define POWER_RAMSTATUS                 _REG(unsigned, 0x40000428)
-#define POWER_SYSTEMOFF                 _REG(unsigned, 0x40000500)
-#define POWER_POFCON                    _REG(unsigned, 0x40000510)
+    _PADDING(36)
+    unsigned RAMSTATUS;                 // 0x428
+    _PADDING(212)
+    unsigned SYSTEMOFF;                 // 0x500
+    _PADDING(12)
+    unsigned POFCON;                    // 0x510
 #define   POWER_POFCON_POF __BIT(1)
 #define   POWER_POFCON_TRESHOLD _FIELD(1, 2)
 #define     POWER_THRESHOLD_V21 0
 #define     POWER_THRESHOLD_V23 1
 #define     POWER_THRESHOLD_V25 2
 #define     POWER_THRESHOLD_V27 3
-#define POWER_GPREGRET                  _REG(unsigned, 0x4000051c)
-#define POWER_GPREGRET2                 _REG(unsigned, 0x40000520)
-#define POWER_DCDCEN                    _REG(unsigned, 0x40000578)
+    _PADDING(8)
+    unsigned GPREGRET;                  // 0x51c
+    unsigned GPREGRET2;                 // 0x520
+    _PADDING(84)
+    unsigned DCDCEN;                    // 0x578
+};
+
+/* Interrupts */
+#define POWER_INT_POFWARN 2
+
+extern volatile struct _power POWER;
 
 
 /* Watchdog timer */
+struct _wdt {
+/* Tasks */
+    unsigned START;                     // 0x000
+/* Events */
+    _PADDING(252)
+    unsigned TIMEOUT;                   // 0x100
+/* Registers */
+    _PADDING(512)
+    unsigned INTENSET;                  // 0x304
+    unsigned INTENCLR;                  // 0x308
+    _PADDING(244)
+    unsigned RUNSTATUS;                 // 0x400
+    unsigned REQSTATUS;                 // 0x404
+    _PADDING(252)
+    unsigned CRV;                       // 0x504
+#define   WDT_HERTZ 32768
+    unsigned RREN;                      // 0x508
+    unsigned CONFIG;                    // 0x50c
+#define   WDT_CONFIG_SLEEP __BIT(0)
+#define   WDT_CONFIG_HALT __BIT(3)
+    _PADDING(240)
+    unsigned RR[8];                     // 0x600
+#define   WDT_MAGIC 0x6e524635
+};
 
 /* Interrupts */
 #define WDT_INT_TIMEOUT 0
 
-#define WDT_BASE                        _BASE(0x40010000)
-/* Tasks */
-#define WDT_START                       _REG(unsigned, 0x40010000)
-/* Events */
-#define WDT_TIMEOUT                     _REG(unsigned, 0x40010100)
-/* Registers */
-#define WDT_INTENSET                    _REG(unsigned, 0x40010304)
-#define WDT_INTENCLR                    _REG(unsigned, 0x40010308)
-#define WDT_RUNSTATUS                   _REG(unsigned, 0x40010400)
-#define WDT_REQSTATUS                   _REG(unsigned, 0x40010404)
-#define WDT_CRV                         _REG(unsigned, 0x40010504)
-#define   WDT_HERTZ 32768
-#define WDT_RREN                        _REG(unsigned, 0x40010508)
-#define WDT_CONFIG                      _REG(unsigned, 0x4001050c)
-#define   WDT_CONFIG_SLEEP __BIT(0)
-#define   WDT_CONFIG_HALT __BIT(3)
-#define WDT_RR                          _ARR(unsigned, 0x40010600)
-#define   WDT_MAGIC 0x6e524635
+extern volatile struct _wdt WDT;
 
 
 /* Non-Volatile Memory Controller */
-
-#define NVMC_BASE                       _BASE(0x4001e000)
-#define NVMC_READY                      _REG(unsigned, 0x4001e400)
-#define NVMC_CONFIG                     _REG(unsigned, 0x4001e504)
-#define   NVMC_CONFIG_WEN __BIT(0)
-#define   NVMC_CONFIG_EEN __BIT(1)
-#define NVMC_ERASEPAGE                  _REG(void*, 0x4001e508)
-#define NVMC_ICACHECONF                 _REG(unsigned, 0x4001e540)
+struct _nvmc {
+    _PADDING(1024)
+    unsigned READY;                     // 0x400
+    _PADDING(256)
+    unsigned CONFIG;                    // 0x504
+#define   NVMC_CONFIG_Ronly 0
+#define   NVMC_CONFIG_Wen 1
+#define   NVMC_CONFIG_Een 2
+    void *ERASEPAGE;                    // 0x508
+    _PADDING(52)
+    unsigned ICACHECONF;                // 0x540
 #define   NVMC_ICACHECONF_CACHEEN __BIT(0)
+};
+
+extern volatile struct _nvmc NVMC;
+
+
+/* UICR */
+struct _uicr {
+    _PADDING(20)
+    unsigned NRFFW[13];                 // 0x014
+    _PADDING(8)
+    unsigned NRFHW[12];                 // 0x050
+    unsigned CUSTOMER[31];              // 0x080
+    _PADDING(260)
+    unsigned PSELRESET[2];              // 0x200
+    unsigned APPROTECT;                 // 0x208
+    unsigned NFCPINS;                   // 0x20c
+    unsigned DEBUGCTRL;                 // 0x210
+    _PADDING(240)
+    unsigned REGOUT0;                   // 0x304
+};
+
+extern volatile struct _uicr UICR;
 
 
 /* GPIO */
-
-#define GPIO0_BASE                      _BASE(0x50000500)
+struct _gpio {
 /* Registers */
-#define GPIO0_OUT                       _REG(unsigned, 0x50000504)
-#define GPIO0_OUTSET                    _REG(unsigned, 0x50000508)
-#define GPIO0_OUTCLR                    _REG(unsigned, 0x5000050c)
-#define GPIO0_IN                        _REG(unsigned, 0x50000510)
-#define GPIO0_DIR                       _REG(unsigned, 0x50000514)
-#define GPIO0_DIRSET                    _REG(unsigned, 0x50000518)
-#define GPIO0_DIRCLR                    _REG(unsigned, 0x5000051c)
-#define GPIO0_PINCNF                    _ARR(unsigned, 0x50000700)
+    _PADDING(4)
+    unsigned OUT;                       // 0x004
+    unsigned OUTSET;                    // 0x008
+    unsigned OUTCLR;                    // 0x00c
+    unsigned IN;                        // 0x010
+    unsigned DIR;                       // 0x014
+    unsigned DIRSET;                    // 0x018
+    unsigned DIRCLR;                    // 0x01c
+    _PADDING(480)
+    unsigned PINCNF[32];                // 0x200
 #define   GPIO_PINCNF_DIR __FIELD(0, 1)
 #define     GPIO_DIR_Input 0
 #define     GPIO_DIR_Output 1
@@ -326,39 +436,31 @@ typedef struct {
 #define     GPIO_SENSE_Disabled 0
 #define     GPIO_SENSE_High 2
 #define     GPIO_SENSE_Low 3
+};
 
-#define GPIO1_BASE                      _BASE(0x50000800)
-#define GPIO1_OUT                       _REG(unsigned, 0x50000804)
-#define GPIO1_OUTSET                    _REG(unsigned, 0x50000808)
-#define GPIO1_OUTCLR                    _REG(unsigned, 0x5000080c)
-#define GPIO1_IN                        _REG(unsigned, 0x50000810)
-#define GPIO1_DIR                       _REG(unsigned, 0x50000814)
-#define GPIO1_DIRSET                    _REG(unsigned, 0x50000818)
-#define GPIO1_DIRCLR                    _REG(unsigned, 0x5000081c)
-#define GPIO1_PINCNF                    _ARR(unsigned, 0x50000a00)
+extern volatile struct _gpio GPIO0, GPIO1;
+extern volatile struct _gpio * const GPIO[];
 
 
 /* GPIOTE */
-
-/* Interrupts */
-#define GPIOTE_INT_IN0 0
-#define GPIOTE_INT_IN1 1
-#define GPIOTE_INT_IN2 2
-#define GPIOTE_INT_IN3 3
-#define GPIOTE_INT_PORT 31
-
-#define GPIOTE_BASE                     _BASE(0x40006000)
+struct _gpiote {
 /* Tasks */
-#define GPIOTE_OUT                      _ARR(unsigned, 0x40006000)
-#define GPIOTE_SET                      _ARR(unsigned, 0x40006030)
-#define GPIOTE_CLR                      _ARR(unsigned, 0x40006060)
+    unsigned OUT[4];                    // 0x000
+    _PADDING(32)
+    unsigned SET[4];                    // 0x030
+    _PADDING(32)
+    unsigned CLR[4];                    // 0x060
 /* Events */
-#define GPIOTE_IN                       _ARR(unsigned, 0x40006100)
-#define GPIOTE_PORT                     _REG(unsigned, 0x4000617c)
+    _PADDING(144)
+    unsigned IN[4];                     // 0x100
+    _PADDING(108)
+    unsigned PORT;                      // 0x17c
 /* Registers */
-#define GPIOTE_INTENSET                 _REG(unsigned, 0x40006304)
-#define GPIOTE_INTENCLR                 _REG(unsigned, 0x40006308)
-#define GPIOTE_CONFIG                   _ARR(unsigned, 0x40006510)
+    _PADDING(388)
+    unsigned INTENSET;                  // 0x304
+    unsigned INTENCLR;                  // 0x308
+    _PADDING(516)
+    unsigned CONFIG[4];                 // 0x510
 #define   GPIOTE_CONFIG_MODE __FIELD(0, 2)
 #define     GPIOTE_MODE_Event 1
 #define     GPIOTE_MODE_Task 3
@@ -368,6 +470,16 @@ typedef struct {
 #define     GPIOTE_POLARITY_HiToLo 2
 #define     GPIOTE_POLARITY_Toggle 3
 #define   GPIOTE_CONFIG_OUTINIT __FIELD(20, 1)
+};
+
+/* Interrupts */
+#define GPIOTE_INT_IN0 0
+#define GPIOTE_INT_IN1 1
+#define GPIOTE_INT_IN2 2
+#define GPIOTE_INT_IN3 3
+#define GPIOTE_INT_PORT 31
+
+extern volatile struct _gpiote GPIOTE;
 
 
 /* PPI */
@@ -375,64 +487,70 @@ typedef struct { unsigned EN, DIS; } ppi_chg;
 
 typedef struct { unsigned volatile *EEP, *TEP; } ppi_chan;
 
-
-#define PPI_BASE                        _BASE(0x4001f000)
+struct _ppi {
 /* Tasks */
-#define PPI_CHG                         _ARR(ppi_chg, 0x4001f000)
+    ppi_chg CHG[6];                     // 0x000
 /* Registers */
-#define PPI_CHEN                        _REG(unsigned, 0x4001f500)
-#define PPI_CHENSET                     _REG(unsigned, 0x4001f504)
-#define PPI_CHENCLR                     _REG(unsigned, 0x4001f508)
-#define PPI_CH                          _ARR(ppi_chan, 0x4001f510)
-#define PPI_CHGRP                       _ARR(unsigned, 0x4001f800)
+    _PADDING(1232)
+    unsigned CHEN;                      // 0x500
+    unsigned CHENSET;                   // 0x504
+    unsigned CHENCLR;                   // 0x508
+    _PADDING(4)
+    ppi_chan CH[20];                    // 0x510
+    _PADDING(592)
+    unsigned CHGRP[6];                  // 0x800
+};
+
+extern volatile struct _ppi PPI;
 
 
 /* Radio */
-
-/* Interrupts */
-#define RADIO_INT_READY 0
-#define RADIO_INT_END 3
-#define RADIO_INT_DISABLED 4
-
-#define RADIO_BASE                      _BASE(0x40001000)
+struct _radio {
 /* Tasks */
-#define RADIO_TXEN                      _REG(unsigned, 0x40001000)
-#define RADIO_RXEN                      _REG(unsigned, 0x40001004)
-#define RADIO_START                     _REG(unsigned, 0x40001008)
-#define RADIO_STOP                      _REG(unsigned, 0x4000100c)
-#define RADIO_DISABLE                   _REG(unsigned, 0x40001010)
-#define RADIO_RSSISTART                 _REG(unsigned, 0x40001014)
-#define RADIO_RSSISTOP                  _REG(unsigned, 0x40001018)
-#define RADIO_BCSTART                   _REG(unsigned, 0x4000101c)
-#define RADIO_BCSTOP                    _REG(unsigned, 0x40001020)
+    unsigned TXEN;                      // 0x000
+    unsigned RXEN;                      // 0x004
+    unsigned START;                     // 0x008
+    unsigned STOP;                      // 0x00c
+    unsigned DISABLE;                   // 0x010
+    unsigned RSSISTART;                 // 0x014
+    unsigned RSSISTOP;                  // 0x018
+    unsigned BCSTART;                   // 0x01c
+    unsigned BCSTOP;                    // 0x020
 /* Events */
-#define RADIO_READY                     _REG(unsigned, 0x40001100)
-#define RADIO_ADDRESS                   _REG(unsigned, 0x40001104)
-#define RADIO_PAYLOAD                   _REG(unsigned, 0x40001108)
-#define RADIO_END                       _REG(unsigned, 0x4000110c)
-#define RADIO_DISABLED                  _REG(unsigned, 0x40001110)
-#define RADIO_DEVMATCH                  _REG(unsigned, 0x40001114)
-#define RADIO_DEVMISS                   _REG(unsigned, 0x40001118)
-#define RADIO_RSSIEND                   _REG(unsigned, 0x4000111c)
-#define RADIO_BCMATCH                   _REG(unsigned, 0x40001128)
+    _PADDING(220)
+    unsigned READY;                     // 0x100
+    unsigned ADDRESS;                   // 0x104
+    unsigned PAYLOAD;                   // 0x108
+    unsigned END;                       // 0x10c
+    unsigned DISABLED;                  // 0x110
+    unsigned DEVMATCH;                  // 0x114
+    unsigned DEVMISS;                   // 0x118
+    unsigned RSSIEND;                   // 0x11c
+    _PADDING(8)
+    unsigned BCMATCH;                   // 0x128
 /* Registers */
-#define RADIO_SHORTS                    _REG(unsigned, 0x40001200)
-#define RADIO_INTENSET                  _REG(unsigned, 0x40001304)
-#define RADIO_INTENCLR                  _REG(unsigned, 0x40001308)
-#define RADIO_CRCSTATUS                 _REG(unsigned, 0x40001400)
-#define RADIO_RXMATCH                   _REG(unsigned, 0x40001408)
-#define RADIO_RXCRC                     _REG(unsigned, 0x4000140c)
-#define RADIO_DAI                       _REG(unsigned, 0x40001410)
-#define RADIO_PACKETPTR                 _REG(void*, 0x40001504)
-#define RADIO_FREQUENCY                 _REG(unsigned, 0x40001508)
-#define RADIO_TXPOWER                   _REG(unsigned, 0x4000150c)
-#define RADIO_MODE                      _REG(unsigned, 0x40001510)
+    _PADDING(212)
+    unsigned SHORTS;                    // 0x200
+    _PADDING(256)
+    unsigned INTENSET;                  // 0x304
+    unsigned INTENCLR;                  // 0x308
+    _PADDING(244)
+    unsigned CRCSTATUS;                 // 0x400
+    _PADDING(4)
+    unsigned RXMATCH;                   // 0x408
+    unsigned RXCRC;                     // 0x40c
+    unsigned DAI;                       // 0x410
+    _PADDING(240)
+    void *PACKETPTR;                    // 0x504
+    unsigned FREQUENCY;                 // 0x508
+    unsigned TXPOWER;                   // 0x50c
+    unsigned MODE;                      // 0x510
 #define   RADIO_MODE_NRF_1Mbit 0
-#define RADIO_PCNF0                     _REG(unsigned, 0x40001514)
+    unsigned PCNF0;                     // 0x514
 #define   RADIO_PCNF0_LFLEN __FIELD(0, 4)
 #define   RADIO_PCNF0_S0LEN __FIELD(8, 1)
 #define   RADIO_PCNF0_S1LEN __FIELD(16, 4)
-#define RADIO_PCNF1                     _REG(unsigned, 0x40001518)
+    unsigned PCNF1;                     // 0x518
 #define   RADIO_PCNF1_MAXLEN __FIELD(0, 8)
 #define   RADIO_PCNF1_STATLEN __FIELD(8, 8)
 #define   RADIO_PCNF1_BALEN __FIELD(16, 3)
@@ -440,30 +558,75 @@ typedef struct { unsigned volatile *EEP, *TEP; } ppi_chan;
 #define     RADIO_ENDIAN_Little 0
 #define     RADIO_ENDIAN_Big 1
 #define   RADIO_PCNF1_WHITEEN __BIT(25)
-#define RADIO_BASE0                     _REG(unsigned, 0x4000151c)
-#define RADIO_BASE1                     _REG(unsigned, 0x40001520)
-#define RADIO_PREFIX0                   _REG(unsigned, 0x40001524)
-#define RADIO_PREFIX1                   _REG(unsigned, 0x40001528)
-#define RADIO_TXADDRESS                 _REG(unsigned, 0x4000152c)
-#define RADIO_RXADDRESSES               _REG(unsigned, 0x40001530)
-#define RADIO_CRCCNF                    _REG(unsigned, 0x40001534)
-#define RADIO_CRCPOLY                   _REG(unsigned, 0x40001538)
-#define RADIO_CRCINIT                   _REG(unsigned, 0x4000153c)
-#define RADIO_TEST                      _REG(unsigned, 0x40001540)
-#define RADIO_TIFS                      _REG(unsigned, 0x40001544)
-#define RADIO_RSSISAMPLE                _REG(unsigned, 0x40001548)
-#define RADIO_STATE                     _REG(unsigned, 0x40001550)
-#define RADIO_DATAWHITEIV               _REG(unsigned, 0x40001554)
-#define RADIO_BCC                       _REG(unsigned, 0x40001560)
-#define RADIO_DAB                       _ARR(unsigned, 0x40001600)
-#define RADIO_DAP                       _ARR(unsigned, 0x40001620)
-#define RADIO_DACNF                     _REG(unsigned, 0x40001640)
-#define RADIO_OVERRIDE                  _ARR(unsigned, 0x40001724)
-#define RADIO_POWER                     _REG(unsigned, 0x40001ffc)
+    unsigned BASE0;                     // 0x51c
+    unsigned BASE1;                     // 0x520
+    unsigned PREFIX0;                   // 0x524
+    unsigned PREFIX1;                   // 0x528
+    unsigned TXADDRESS;                 // 0x52c
+    unsigned RXADDRESSES;               // 0x530
+    unsigned CRCCNF;                    // 0x534
+    unsigned CRCPOLY;                   // 0x538
+    unsigned CRCINIT;                   // 0x53c
+    unsigned TEST;                      // 0x540
+    unsigned TIFS;                      // 0x544
+    unsigned RSSISAMPLE;                // 0x548
+    _PADDING(4)
+    unsigned STATE;                     // 0x550
+    unsigned DATAWHITEIV;               // 0x554
+    _PADDING(8)
+    unsigned BCC;                       // 0x560
+    _PADDING(156)
+    unsigned DAB[8];                    // 0x600
+    unsigned DAP[8];                    // 0x620
+    unsigned DACNF;                     // 0x640
+    _PADDING(224)
+    unsigned OVERRIDE[5];               // 0x724
+    _PADDING(2244)
+    unsigned POWER;                     // 0xffc
+};
+
+/* Interrupts */
+#define RADIO_INT_READY 0
+#define RADIO_INT_END 3
+#define RADIO_INT_DISABLED 4
+
+extern volatile struct _radio RADIO;
 
 
 /* TIMERS: Timers are all 8/16/24/32 bit; timers 3 and 4 have 6 CC registers
    instead of 4. */
+struct _timer {
+/* Tasks */
+    unsigned START;                     // 0x000
+    unsigned STOP;                      // 0x004
+    unsigned COUNT;                     // 0x008
+    unsigned CLEAR;                     // 0x00c
+    unsigned SHUTDOWN;                  // 0x010
+    _PADDING(44)
+    unsigned CAPTURE[6];                // 0x040
+/* Events */
+    _PADDING(232)
+    unsigned COMPARE[6];                // 0x140
+/* Registers */
+    _PADDING(168)
+    unsigned SHORTS;                    // 0x200
+    _PADDING(256)
+    unsigned INTENSET;                  // 0x304
+    unsigned INTENCLR;                  // 0x308
+    _PADDING(504)
+    unsigned MODE;                      // 0x504
+#define   TIMER_MODE_Timer 0
+#define   TIMER_MODE_Counter 1
+    unsigned BITMODE;                   // 0x508
+#define   TIMER_BITMODE_16Bit 0
+#define   TIMER_BITMODE_8Bit 1
+#define   TIMER_BITMODE_24Bit 2
+#define   TIMER_BITMODE_32Bit 3
+    _PADDING(4)
+    unsigned PRESCALER;                 // 0x510
+    _PADDING(44)
+    unsigned CC[6];                     // 0x540
+};
 
 /* Interrupts */
 #define TIMER_INT_COMPARE0 16
@@ -486,140 +649,114 @@ typedef struct { unsigned volatile *EEP, *TEP; } ppi_chan;
 #define TIMER_COMPARE4_STOP 12
 #define TIMER_COMPARE5_STOP 13
 
-#define TIMER0_BASE                     _BASE(0x40008000)
-/* Tasks */
-#define TIMER0_START                    _REG(unsigned, 0x40008000)
-#define TIMER0_STOP                     _REG(unsigned, 0x40008004)
-#define TIMER0_COUNT                    _REG(unsigned, 0x40008008)
-#define TIMER0_CLEAR                    _REG(unsigned, 0x4000800c)
-#define TIMER0_SHUTDOWN                 _REG(unsigned, 0x40008010)
-#define TIMER0_CAPTURE                  _ARR(unsigned, 0x40008040)
-/* Events */
-#define TIMER0_COMPARE                  _ARR(unsigned, 0x40008140)
-/* Registers */
-#define TIMER0_SHORTS                   _REG(unsigned, 0x40008200)
-#define TIMER0_INTENSET                 _REG(unsigned, 0x40008304)
-#define TIMER0_INTENCLR                 _REG(unsigned, 0x40008308)
-#define TIMER0_MODE                     _REG(unsigned, 0x40008504)
-#define   TIMER_MODE_Timer 0
-#define   TIMER_MODE_Counter 1
-#define TIMER0_BITMODE                  _REG(unsigned, 0x40008508)
-#define   TIMER_BITMODE_16Bit 0
-#define   TIMER_BITMODE_8Bit 1
-#define   TIMER_BITMODE_24Bit 2
-#define   TIMER_BITMODE_32Bit 3
-#define TIMER0_PRESCALER                _REG(unsigned, 0x40008510)
-#define TIMER0_CC                       _ARR(unsigned, 0x40008540)
-
-#define TIMER1_BASE                     _BASE(0x40009000)
-#define TIMER1_START                    _REG(unsigned, 0x40009000)
-#define TIMER1_STOP                     _REG(unsigned, 0x40009004)
-#define TIMER1_COUNT                    _REG(unsigned, 0x40009008)
-#define TIMER1_CLEAR                    _REG(unsigned, 0x4000900c)
-#define TIMER1_SHUTDOWN                 _REG(unsigned, 0x40009010)
-#define TIMER1_CAPTURE                  _ARR(unsigned, 0x40009040)
-#define TIMER1_COMPARE                  _ARR(unsigned, 0x40009140)
-#define TIMER1_SHORTS                   _REG(unsigned, 0x40009200)
-#define TIMER1_INTENSET                 _REG(unsigned, 0x40009304)
-#define TIMER1_INTENCLR                 _REG(unsigned, 0x40009308)
-#define TIMER1_MODE                     _REG(unsigned, 0x40009504)
-#define TIMER1_BITMODE                  _REG(unsigned, 0x40009508)
-#define TIMER1_PRESCALER                _REG(unsigned, 0x40009510)
-#define TIMER1_CC                       _ARR(unsigned, 0x40009540)
-
-#define TIMER2_BASE                     _BASE(0x4000a000)
-#define TIMER2_START                    _REG(unsigned, 0x4000a000)
-#define TIMER2_STOP                     _REG(unsigned, 0x4000a004)
-#define TIMER2_COUNT                    _REG(unsigned, 0x4000a008)
-#define TIMER2_CLEAR                    _REG(unsigned, 0x4000a00c)
-#define TIMER2_SHUTDOWN                 _REG(unsigned, 0x4000a010)
-#define TIMER2_CAPTURE                  _ARR(unsigned, 0x4000a040)
-#define TIMER2_COMPARE                  _ARR(unsigned, 0x4000a140)
-#define TIMER2_SHORTS                   _REG(unsigned, 0x4000a200)
-#define TIMER2_INTENSET                 _REG(unsigned, 0x4000a304)
-#define TIMER2_INTENCLR                 _REG(unsigned, 0x4000a308)
-#define TIMER2_MODE                     _REG(unsigned, 0x4000a504)
-#define TIMER2_BITMODE                  _REG(unsigned, 0x4000a508)
-#define TIMER2_PRESCALER                _REG(unsigned, 0x4000a510)
-#define TIMER2_CC                       _ARR(unsigned, 0x4000a540)
-
-#define TIMER3_BASE                     _BASE(0x4001a000)
-#define TIMER3_START                    _REG(unsigned, 0x4001a000)
-#define TIMER3_STOP                     _REG(unsigned, 0x4001a004)
-#define TIMER3_COUNT                    _REG(unsigned, 0x4001a008)
-#define TIMER3_CLEAR                    _REG(unsigned, 0x4001a00c)
-#define TIMER3_SHUTDOWN                 _REG(unsigned, 0x4001a010)
-#define TIMER3_CAPTURE                  _ARR(unsigned, 0x4001a040)
-#define TIMER3_COMPARE                  _ARR(unsigned, 0x4001a140)
-#define TIMER3_SHORTS                   _REG(unsigned, 0x4001a200)
-#define TIMER3_INTENSET                 _REG(unsigned, 0x4001a304)
-#define TIMER3_INTENCLR                 _REG(unsigned, 0x4001a308)
-#define TIMER3_MODE                     _REG(unsigned, 0x4001a504)
-#define TIMER3_BITMODE                  _REG(unsigned, 0x4001a508)
-#define TIMER3_PRESCALER                _REG(unsigned, 0x4001a510)
-#define TIMER3_CC                       _ARR(unsigned, 0x4001a540)
-
-#define TIMER4_BASE                     _BASE(0x4001b000)
-#define TIMER4_START                    _REG(unsigned, 0x4001b000)
-#define TIMER4_STOP                     _REG(unsigned, 0x4001b004)
-#define TIMER4_COUNT                    _REG(unsigned, 0x4001b008)
-#define TIMER4_CLEAR                    _REG(unsigned, 0x4001b00c)
-#define TIMER4_SHUTDOWN                 _REG(unsigned, 0x4001b010)
-#define TIMER4_CAPTURE                  _ARR(unsigned, 0x4001b040)
-#define TIMER4_COMPARE                  _ARR(unsigned, 0x4001b140)
-#define TIMER4_SHORTS                   _REG(unsigned, 0x4001b200)
-#define TIMER4_INTENSET                 _REG(unsigned, 0x4001b304)
-#define TIMER4_INTENCLR                 _REG(unsigned, 0x4001b308)
-#define TIMER4_MODE                     _REG(unsigned, 0x4001b504)
-#define TIMER4_BITMODE                  _REG(unsigned, 0x4001b508)
-#define TIMER4_PRESCALER                _REG(unsigned, 0x4001b510)
-#define TIMER4_CC                       _ARR(unsigned, 0x4001b540)
+extern volatile struct _timer TIMER0, TIMER1, TIMER2, TIMER3, TIMER4;
+extern volatile struct _timer * const TIMER[];
 
 
 /* Random Number Generator */
+struct _rng {
+/* Tasks */
+    unsigned START;                     // 0x000
+    unsigned STOP;                      // 0x004
+/* Events */
+    _PADDING(248)
+    unsigned VALRDY;                    // 0x100
+/* Registers */
+    _PADDING(252)
+    unsigned SHORTS;                    // 0x200
+    _PADDING(252)
+    unsigned INTEN;                     // 0x300
+    unsigned INTENSET;                  // 0x304
+    unsigned INTENCLR;                  // 0x308
+    _PADDING(504)
+    unsigned CONFIG;                    // 0x504
+#define RNG_CONFIG_DERCEN __BIT(0)
+    unsigned VALUE;                     // 0x508
+};
 
 /* Interrupts */
 #define RNG_INT_VALRDY 0
 
-#define RNG_BASE                        _BASE(0x4000d000)
-/* Tasks */
-#define RNG_START                       _REG(unsigned, 0x4000d000)
-#define RNG_STOP                        _REG(unsigned, 0x4000d004)
-/* Events */
-#define RNG_VALRDY                      _REG(unsigned, 0x4000d100)
-/* Registers */
-#define RNG_SHORTS                      _REG(unsigned, 0x4000d200)
-#define RNG_INTEN                       _REG(unsigned, 0x4000d300)
-#define RNG_INTENSET                    _REG(unsigned, 0x4000d304)
-#define RNG_INTENCLR                    _REG(unsigned, 0x4000d308)
-#define RNG_CONFIG                      _REG(unsigned, 0x4000d504)
-#define RNG_CONFIG_DERCEN __BIT(0)
-#define RNG_VALUE                       _REG(unsigned, 0x4000d508)
+extern volatile struct _rng RNG;
 
 
 /* Temperature sensor */
+struct _temp {
+/* Tasks */
+    unsigned START;                     // 0x000
+    unsigned STOP;                      // 0x004
+/* Events */
+    _PADDING(248)
+    unsigned DATARDY;                   // 0x100
+/* Registers */
+    _PADDING(508)
+    unsigned INTEN;                     // 0x300
+    unsigned INTENSET;                  // 0x304
+    unsigned INTENCLR;                  // 0x308
+    _PADDING(508)
+    unsigned VALUE;                     // 0x508
+};
 
 /* Interrupts */
 #define TEMP_INT_DATARDY 0
 
-#define TEMP_BASE                       _BASE(0x4000c000)
-/* Tasks */
-#define TEMP_START                      _REG(unsigned, 0x4000c000)
-#define TEMP_STOP                       _REG(unsigned, 0x4000c004)
-/* Events */
-#define TEMP_DATARDY                    _REG(unsigned, 0x4000c100)
-/* Registers */
-#define TEMP_INTEN                      _REG(unsigned, 0x4000c300)
-#define TEMP_INTENSET                   _REG(unsigned, 0x4000c304)
-#define TEMP_INTENCLR                   _REG(unsigned, 0x4000c308)
-#define TEMP_VALUE                      _REG(unsigned, 0x4000c508)
+extern volatile struct _temp TEMP;
 
 
 /* I2C */
-#define N_I2C 2
-#define I2C_INTERNAL 0
-#define I2C_EXTERNAL 1
-
+struct _i2c {
+/* Tasks */
+    unsigned STARTRX;                   // 0x000
+    _PADDING(4)
+    unsigned STARTTX;                   // 0x008
+    _PADDING(8)
+    unsigned STOP;                      // 0x014
+    _PADDING(4)
+    unsigned SUSPEND;                   // 0x01c
+    unsigned RESUME;                    // 0x020
+/* Events */
+    _PADDING(224)
+    unsigned STOPPED;                   // 0x104
+    unsigned RXDREADY;                  // 0x108
+    _PADDING(16)
+    unsigned TXDSENT;                   // 0x11c
+    _PADDING(4)
+    unsigned ERROR;                     // 0x124
+    _PADDING(16)
+    unsigned BB;                        // 0x138
+    _PADDING(12)
+    unsigned SUSPENDED;                 // 0x148
+/* Registers */
+    _PADDING(180)
+    unsigned SHORTS;                    // 0x200
+    _PADDING(252)
+    unsigned INTEN;                     // 0x300
+    unsigned INTENSET;                  // 0x304
+    unsigned INTENCLR;                  // 0x308
+    _PADDING(440)
+    unsigned ERRORSRC;                  // 0x4c4
+#define   I2C_ERRORSRC_OVERRUN __BIT(0)
+#define   I2C_ERRORSRC_ANACK __BIT(1)
+#define   I2C_ERRORSRC_DNACK __BIT(2)
+#define   I2C_ERRORSRC_All 0x7
+    _PADDING(56)
+    unsigned ENABLE;                    // 0x500
+#define   I2C_ENABLE_Disabled 0
+#define   I2C_ENABLE_Enabled 5
+    _PADDING(4)
+    unsigned PSELSCL;                   // 0x508
+    unsigned PSELSDA;                   // 0x50c
+    _PADDING(8)
+    unsigned RXD;                       // 0x518
+    unsigned TXD;                       // 0x51c
+    _PADDING(4)
+    unsigned FREQUENCY;                 // 0x524
+#define   I2C_FREQUENCY_100kHz 0x01980000
+    _PADDING(96)
+    unsigned ADDRESS;                   // 0x588
+    _PADDING(2672)
+    unsigned POWER;                     // 0xffc
+};
 
 /* Interrupts */
 #define I2C_INT_STOPPED 1
@@ -631,93 +768,156 @@ typedef struct { unsigned volatile *EEP, *TEP; } ppi_chan;
 #define I2C_BB_SUSPEND 0
 #define I2C_BB_STOP 1
 
-#define I2C0_BASE                       _BASE(0x40003000)
-/* Tasks */
-#define I2C0_STARTRX                    _REG(unsigned, 0x40003000)
-#define I2C0_STARTTX                    _REG(unsigned, 0x40003008)
-#define I2C0_STOP                       _REG(unsigned, 0x40003014)
-#define I2C0_SUSPEND                    _REG(unsigned, 0x4000301c)
-#define I2C0_RESUME                     _REG(unsigned, 0x40003020)
-/* Events */
-#define I2C0_STOPPED                    _REG(unsigned, 0x40003104)
-#define I2C0_RXDREADY                   _REG(unsigned, 0x40003108)
-#define I2C0_TXDSENT                    _REG(unsigned, 0x4000311c)
-#define I2C0_ERROR                      _REG(unsigned, 0x40003124)
-#define I2C0_BB                         _REG(unsigned, 0x40003138)
-#define I2C0_SUSPENDED                  _REG(unsigned, 0x40003148)
-/* Registers */
-#define I2C0_SHORTS                     _REG(unsigned, 0x40003200)
-#define I2C0_INTEN                      _REG(unsigned, 0x40003300)
-#define I2C0_INTENSET                   _REG(unsigned, 0x40003304)
-#define I2C0_INTENCLR                   _REG(unsigned, 0x40003308)
-#define I2C0_ERRORSRC                   _REG(unsigned, 0x400034c4)
-#define   I2C_ERRORSRC_OVERRUN __BIT(0)
-#define   I2C_ERRORSRC_ANACK __BIT(1)
-#define   I2C_ERRORSRC_DNACK __BIT(2)
-#define   I2C_ERRORSRC_All 0x7
-#define I2C0_ENABLE                     _REG(unsigned, 0x40003500)
-#define   I2C_ENABLE_Disabled 0
-#define   I2C_ENABLE_Enabled 5
-#define I2C0_PSELSCL                    _REG(unsigned, 0x40003508)
-#define I2C0_PSELSDA                    _REG(unsigned, 0x4000350c)
-#define I2C0_RXD                        _REG(unsigned, 0x40003518)
-#define I2C0_TXD                        _REG(unsigned, 0x4000351c)
-#define I2C0_FREQUENCY                  _REG(unsigned, 0x40003524)
-#define   I2C_FREQUENCY_100kHz 0x01980000
-#define I2C0_ADDRESS                    _REG(unsigned, 0x40003588)
-#define I2C0_POWER                      _REG(unsigned, 0x40003ffc)
+extern volatile struct _i2c I2C0, I2C1;
+extern volatile struct _i2c * const I2C[];
 
-#define I2C1_BASE                       _BASE(0x40004000)
-#define I2C1_STARTRX                    _REG(unsigned, 0x40004000)
-#define I2C1_STARTTX                    _REG(unsigned, 0x40004008)
-#define I2C1_STOP                       _REG(unsigned, 0x40004014)
-#define I2C1_SUSPEND                    _REG(unsigned, 0x4000401c)
-#define I2C1_RESUME                     _REG(unsigned, 0x40004020)
-#define I2C1_STOPPED                    _REG(unsigned, 0x40004104)
-#define I2C1_RXDREADY                   _REG(unsigned, 0x40004108)
-#define I2C1_TXDSENT                    _REG(unsigned, 0x4000411c)
-#define I2C1_ERROR                      _REG(unsigned, 0x40004124)
-#define I2C1_BB                         _REG(unsigned, 0x40004138)
-#define I2C1_SUSPENDED                  _REG(unsigned, 0x40004148)
-#define I2C1_SHORTS                     _REG(unsigned, 0x40004200)
-#define I2C1_INTEN                      _REG(unsigned, 0x40004300)
-#define I2C1_INTENSET                   _REG(unsigned, 0x40004304)
-#define I2C1_INTENCLR                   _REG(unsigned, 0x40004308)
-#define I2C1_ERRORSRC                   _REG(unsigned, 0x400044c4)
-#define I2C1_ENABLE                     _REG(unsigned, 0x40004500)
-#define I2C1_PSELSCL                    _REG(unsigned, 0x40004508)
-#define I2C1_PSELSDA                    _REG(unsigned, 0x4000450c)
-#define I2C1_RXD                        _REG(unsigned, 0x40004518)
-#define I2C1_TXD                        _REG(unsigned, 0x4000451c)
-#define I2C1_FREQUENCY                  _REG(unsigned, 0x40004524)
-#define I2C1_ADDRESS                    _REG(unsigned, 0x40004588)
-#define I2C1_POWER                      _REG(unsigned, 0x40004ffc)
+
+/* Legacy SPI */
+struct _spi {
+    _PADDING(264)
+    unsigned READY;                     // 0x108
+    _PADDING(500)
+    unsigned INTEN;                     // 0x300
+    unsigned INTENSET;                  // 0x304
+    unsigned INTENCLR;                  // 0x308
+    _PADDING(500)
+    unsigned ENABLE;                    // 0x500
+#define   SPI_ENABLE_Enabled 1
+#define   SPI_ENABLE_Disabled 0
+    _PADDING(4)
+    unsigned PSELSCK;                   // 0x508
+    unsigned PSELMOSI;                  // 0x50c
+    unsigned PSELMISO;                  // 0x510
+    _PADDING(4)
+    unsigned RXD;                       // 0x518
+    unsigned TXD;                       // 0x51c
+    _PADDING(4)
+    unsigned FREQUENCY;                 // 0x524
+#define   SPI_FREQUENCY_125kHz 0x02000000
+#define   SPI_FREQUENCY_250kHz 0x04000000
+#define   SPI_FREQUENCY_500kHz 0x08000000
+#define   SPI_FREQUENCY_1MHz   0x10000000
+#define   SPI_FREQUENCY_2MHz   0x20000000
+#define   SPI_FREQUENCY_4MHz   0x40000000
+#define   SPI_FREQUENCY_8MHz   0x80000000
+    _PADDING(44)
+    unsigned CONFIG;                    // 0x554
+#define   SPI_CONFIG_ORDER __FIELD(0, 1)
+#define     SPI_ORDER_MsbFirst 0
+#define     SPI_ORDER_LsbFirst 1
+#define   SPI_CONFIG_CPHASE __FIELD(1, 1)
+#define     SPI_CPHASE_Leading 0
+#define     SPI_CPHASE_Trailing 1
+#define   SPI_CONFIG_CPOLARITY __FIELD(2, 1)
+#define     SPI_CPOLARITY_ActiveHigh 0
+#define     SPI_CPOLARITY_ActiveLow 1
+};
+
+#define SPI_INT_READY 2
+
+extern volatile struct _spi SPI0, SPI1, SPI2;
+extern volatile struct _spi * const SPI[];
+
+
+/* SPI with EasyDMA */
+struct _spim {
+/* Tasks */
+    _PADDING(16)
+    unsigned START;                     // 0x010
+    unsigned STOP;                      // 0x014
+    _PADDING(4)
+    unsigned SUSPEND;                   // 0x01c
+    unsigned RESUME;                    // 0x020
+/* Events */
+    _PADDING(224)
+    unsigned STOPPED;                   // 0x104
+    _PADDING(8)
+    unsigned ENDRX;                     // 0x110
+    _PADDING(4)
+    unsigned END;                       // 0x118
+    _PADDING(48)
+    unsigned STARTED;                   // 0x14c
+/* Registers */
+    _PADDING(176)
+    unsigned SHORTS;                    // 0x200
+    _PADDING(256)
+    unsigned INTENSET;                  // 0x304
+    unsigned INTENCLR;                  // 0x308
+    _PADDING(244)
+    unsigned STALLSTAT;                 // 0x400
+#define   SPIM_STALLSTAT_TX __BIT(0)
+#define   SPIM_STALLSTAT_RX __BIT(1)
+    _PADDING(252)
+    unsigned ENABLE;                    // 0x500
+#define   SPIM_ENABLE_Disabled 0
+#define   SPIM_ENABLE_Enabled 7
+    _PADDING(4)
+    unsigned PSELSCK;                   // 0x508
+    unsigned PSELMOSI;                  // 0x50c
+    unsigned PSELMISO;                  // 0x510
+    unsigned PSELCSN;                   // 0x514
+    _PADDING(12)
+    unsigned FREQUENCY;                 // 0x524
+    /* Use same FREQUENCY settings as plain SPI, plus (if brave) */
+#define   SPI_FREQUENCY_16MHz 0x0a000000
+#define   SPI_FREQUENCY_32MHz 0x14000000
+    _PADDING(12)
+    dma_param RXD;                      // 0x534
+    dma_param TXD;                      // 0x544
+    unsigned CONFIG;                    // 0x554
+    /* Use same CONFIG fields as plain SPI */
+    _PADDING(8)
+    unsigned RXDELAY;                   // 0x560
+    unsigned CSNDUR;                    // 0x564
+    unsigned CSNPOL;                    // 0x568
+#define   SPIM_CSNPOL_ActiveLow 0
+#define   SPIM_CSNPOL_ActiveHigh 1
+    unsigned PSELDCX;                   // 0x56c
+    _PADDING(80)
+    unsigned ORC;                       // 0x5c0
+};
+
+/* Interrupts */
+#define SPIM_INT_STOPPED 1
+#define SPIM_INT_ENDRX 4
+#define SPIM_INT_END 6
+#define SPIM_INT_ENDTX 8
+#define SPIM_INT_STARTED 19
+
+/* Shortcuts */
+#define SPIM_END_START 17
+
+extern volatile struct _spim SPIM0, SPIM1, SPIM2, SPIM3;
+extern volatile struct _spim * const SPIM[];
 
 
 /* UART */
-
-/* Interrupts */
-#define UART_INT_RXDRDY 2
-#define UART_INT_TXDRDY 7
-
-#define UART_BASE                       _BASE(0x40002000)
+struct _uart {
 /* Tasks */
-#define UART_STARTRX                    _REG(unsigned, 0x40002000)
-#define UART_STARTTX                    _REG(unsigned, 0x40002008)
+    unsigned STARTRX;                   // 0x000
+    _PADDING(4)
+    unsigned STARTTX;                   // 0x008
 /* Events */
-#define UART_RXDRDY                     _REG(unsigned, 0x40002108)
-#define UART_TXDRDY                     _REG(unsigned, 0x4000211c)
+    _PADDING(252)
+    unsigned RXDRDY;                    // 0x108
+    _PADDING(16)
+    unsigned TXDRDY;                    // 0x11c
 /* Registers */
-#define UART_INTENSET                   _REG(unsigned, 0x40002304)
-#define UART_INTENCLR                   _REG(unsigned, 0x40002308)
-#define UART_ENABLE                     _REG(unsigned, 0x40002500)
+    _PADDING(484)
+    unsigned INTENSET;                  // 0x304
+    unsigned INTENCLR;                  // 0x308
+    _PADDING(500)
+    unsigned ENABLE;                    // 0x500
 #define   UART_ENABLE_Disabled 0
 #define   UART_ENABLE_Enabled 4
-#define UART_PSELTXD                    _REG(unsigned, 0x4000250c)
-#define UART_PSELRXD                    _REG(unsigned, 0x40002514)
-#define UART_RXD                        _REG(unsigned, 0x40002518)
-#define UART_TXD                        _REG(unsigned, 0x4000251c)
-#define UART_BAUDRATE                   _REG(unsigned, 0x40002524)
+    _PADDING(8)
+    unsigned PSELTXD;                   // 0x50c
+    _PADDING(4)
+    unsigned PSELRXD;                   // 0x514
+    unsigned RXD;                       // 0x518
+    unsigned TXD;                       // 0x51c
+    _PADDING(4)
+    unsigned BAUDRATE;                  // 0x524
 #define   UART_BAUDRATE_1200   0x0004f000
 #define   UART_BAUDRATE_2400   0x0009d000
 #define   UART_BAUDRATE_4800   0x0013b000
@@ -736,14 +936,88 @@ typedef struct { unsigned volatile *EEP, *TEP; } ppi_chan;
 #define   UART_BAUDRATE_460800 0x07400000
 #define   UART_BAUDRATE_921600 0x0f000000
 #define   UART_BAUDRATE_1M     0x10000000
-#define UART_CONFIG                     _REG(unsigned, 0x4000256c)
+    _PADDING(68)
+    unsigned CONFIG;                    // 0x56c
 #define   UART_CONFIG_HWFC __BIT(0)
 #define   UART_CONFIG_PARITY __FIELD(1, 3)
 #define     UART_PARITY_None 0
 #define     UART_PARITY_Even 7
+};
+
+/* Interrupts */
+#define UART_INT_RXDRDY 2
+#define UART_INT_TXDRDY 7
+
+extern volatile struct _uart UART;
 
 
 /* UARTE -- UART with EasyDMA */
+struct _uarte {
+/* Tasks */
+    unsigned STARTRX;                   // 0x000
+    unsigned STOPRX;                    // 0x004
+    unsigned STARTTX;                   // 0x008
+    unsigned STOPTX;                    // 0x00c
+    _PADDING(28)
+    unsigned FLUSHRX;                   // 0x02c
+/* Events */
+    _PADDING(208)
+    unsigned CTS;                       // 0x100
+    unsigned NTCS;                      // 0x104
+    unsigned RXDRDY;                    // 0x108
+    _PADDING(4)
+    unsigned ENDRX;                     // 0x110
+    _PADDING(8)
+    unsigned TXDRDY;                    // 0x11c
+    unsigned ENDTX;                     // 0x120
+    unsigned ERROR;                     // 0x124
+    _PADDING(28)
+    unsigned RXTO;                      // 0x144
+    _PADDING(4)
+    unsigned RXSTARTED;                 // 0x14c
+    unsigned TXSTARTED;                 // 0x150
+    _PADDING(4)
+    unsigned TXSTOPPED;                 // 0x158
+/* Registers */
+    _PADDING(164)
+    unsigned SHORTS;                    // 0x200
+    _PADDING(252)
+    unsigned INTEN;                     // 0x300
+    unsigned INTENSET;                  // 0x304
+    unsigned INTENCLR;                  // 0x308
+    _PADDING(372)
+    unsigned ERRORSRC;                  // 0x480
+#define   UARTE_ERROR_OVERRUN __BIT(0)
+#define   UARTE_ERROR_PARITY __BIT(1)
+#define   UARTE_ERROR_FRAMING __BIT(2)
+#define   UARTE_ERROR_BREAK __BIT(3)
+    _PADDING(124)
+    unsigned ENABLE;                    // 0x500
+#define   UARTE_ENABLE_Disabled 0
+#define   UARTE_ENABLE_Enabled 8
+    _PADDING(4)
+    unsigned PSELRTS;                   // 0x508
+    unsigned PSELTXD;                   // 0x50c
+    unsigned PSELCTS;                   // 0x510
+    unsigned PSELRXD;                   // 0x514
+    _PADDING(12)
+    unsigned BAUDRATE;                  // 0x524
+    _PADDING(12)
+    dma_param RXD;                      // 0x534
+    dma_param TXD;                      // 0x544
+    _PADDING(24)
+    unsigned CONFIG;                    // 0x56c
+#define   UARTE_CONFIG_HWFC __BIT(0)
+#define   UARTE_CONFIG_PARITY __FIELD(1, 3)
+#define     UARTE_PARITY_Disabled 0
+#define     UARTE_PARITY_Enabled 7
+#define   UARTE_CONFIG_STOP __FIELD(4, 1)
+#define     UARTE_STOP_1 0
+#define     UARTE_STOP_2 1
+#define   UARTE_CONFIG_PARITYTYPE __FIELD(8, 1)
+#define     UARTE_PARITYTYPE_Even 0
+#define     UARTE_PARITYTYPE_Odd 1
+};
 
 /* Interrupts */
 #define UARTE_INT_CTS 0
@@ -762,106 +1036,9 @@ typedef struct { unsigned volatile *EEP, *TEP; } ppi_chan;
 #define UARTE_ENDRX_STARTRX 5
 #define UARTE_ENDRX_STOPRX 6
 
-#define UARTE0_BASE                     _BASE(0x40002000)
-/* Tasks */
-#define UARTE0_STARTRX                  _REG(unsigned, 0x40002000)
-#define UARTE0_STOPRX                   _REG(unsigned, 0x40002004)
-#define UARTE0_STARTTX                  _REG(unsigned, 0x40002008)
-#define UARTE0_STOPTX                   _REG(unsigned, 0x4000200c)
-#define UARTE0_FLUSHRX                  _REG(unsigned, 0x4000202c)
-/* Events */
-#define UARTE0_CTS                      _REG(unsigned, 0x40002100)
-#define UARTE0_NTCS                     _REG(unsigned, 0x40002104)
-#define UARTE0_RXDRDY                   _REG(unsigned, 0x40002108)
-#define UARTE0_ENDRX                    _REG(unsigned, 0x40002110)
-#define UARTE0_TXDRDY                   _REG(unsigned, 0x4000211c)
-#define UARTE0_ENDTX                    _REG(unsigned, 0x40002120)
-#define UARTE0_ERROR                    _REG(unsigned, 0x40002124)
-#define UARTE0_RXTO                     _REG(unsigned, 0x40002144)
-#define UARTE0_RXSTARTED                _REG(unsigned, 0x4000214c)
-#define UARTE0_TXSTARTED                _REG(unsigned, 0x40002150)
-#define UARTE0_TXSTOPPED                _REG(unsigned, 0x40002158)
-/* Registers */
-#define UARTE0_SHORTS                   _REG(unsigned, 0x40002200)
-#define UARTE0_INTEN                    _REG(unsigned, 0x40002300)
-#define UARTE0_INTENSET                 _REG(unsigned, 0x40002304)
-#define UARTE0_INTENCLR                 _REG(unsigned, 0x40002308)
-#define UARTE0_ERRORSRC                 _REG(unsigned, 0x40002480)
-#define   UARTE_ERROR_OVERRUN __BIT(0)
-#define   UARTE_ERROR_PARITY __BIT(1)
-#define   UARTE_ERROR_FRAMING __BIT(2)
-#define   UARTE_ERROR_BREAK __BIT(3)
-#define UARTE0_ENABLE                   _REG(unsigned, 0x40002500)
-#define   UARTE_ENABLE_Disabled 0
-#define   UARTE_ENABLE_Enabled 8
-#define UARTE0_PSELRTS                  _REG(unsigned, 0x40002508)
-#define UARTE0_PSELTXD                  _REG(unsigned, 0x4000250c)
-#define UARTE0_PSELCTS                  _REG(unsigned, 0x40002510)
-#define UARTE0_PSELRXD                  _REG(unsigned, 0x40002514)
-#define UARTE0_BAUDRATE                 _REG(unsigned, 0x40002524)
-#define   UARTE_BAUDRATE_1200   0x0004f000
-#define   UARTE_BAUDRATE_2400   0x0009d000
-#define   UARTE_BAUDRATE_4800   0x0013b000
-#define   UARTE_BAUDRATE_9600   0x00275000
-#define   UARTE_BAUDRATE_14400  0x003af000
-#define   UARTE_BAUDRATE_19200  0x004ea000
-#define   UARTE_BAUDRATE_28800  0x0075c000
-#define   UARTE_BAUDRATE_31250  0x00800000
-#define   UARTE_BAUDRATE_38400  0x009d0000
-#define   UARTE_BAUDRATE_56000  0x00e50000
-#define   UARTE_BAUDRATE_57600  0x00eb0000
-#define   UARTE_BAUDRATE_76800  0x013a9000
-#define   UARTE_BAUDRATE_115200 0x01d60000
-#define   UARTE_BAUDRATE_230400 0x03b00000
-#define   UARTE_BAUDRATE_250000 0x04000000
-#define   UARTE_BAUDRATE_460800 0x07400000
-#define   UARTE_BAUDRATE_921600 0x0f000000
-#define   UARTE_BAUDRATE_1M     0x10000000
-#define UARTE0_RXD                      _REG(dma_param, 0x40002534)
-#define UARTE0_TXD                      _REG(dma_param, 0x40002544)
-#define UARTE0_CONFIG                   _REG(unsigned, 0x4000256c)
-#define   UARTE_CONFIG_HWFC __BIT(0)
-#define   UARTE_CONFIG_PARITY __FIELD(1, 3)
-#define     UARTE_PARITY_Disabled 0
-#define     UARTE_PARITY_Enabled 7
-#define   UARTE_CONFIG_STOP __FIELD(4, 1)
-#define     UARTE_STOP_1 0
-#define     UARTE_STOP_2 1
-#define   UARTE_CONFIG_PARITYTYPE __FIELD(8, 1)
-#define     UARTE_PARITYTYPE_Even 0
-#define     UARTE_PARITYTYPE_Odd 1
-#define UARTE1_BASE                     _BASE(0x40028000)
-#define UARTE1_STARTRX                  _REG(unsigned, 0x40028000)
-#define UARTE1_STOPRX                   _REG(unsigned, 0x40028004)
-#define UARTE1_STARTTX                  _REG(unsigned, 0x40028008)
-#define UARTE1_STOPTX                   _REG(unsigned, 0x4002800c)
-#define UARTE1_FLUSHRX                  _REG(unsigned, 0x4002802c)
-#define UARTE1_CTS                      _REG(unsigned, 0x40028100)
-#define UARTE1_NTCS                     _REG(unsigned, 0x40028104)
-#define UARTE1_RXDRDY                   _REG(unsigned, 0x40028108)
-#define UARTE1_ENDRX                    _REG(unsigned, 0x40028110)
-#define UARTE1_TXDRDY                   _REG(unsigned, 0x4002811c)
-#define UARTE1_ENDTX                    _REG(unsigned, 0x40028120)
-#define UARTE1_ERROR                    _REG(unsigned, 0x40028124)
-#define UARTE1_RXTO                     _REG(unsigned, 0x40028144)
-#define UARTE1_RXSTARTED                _REG(unsigned, 0x4002814c)
-#define UARTE1_TXSTARTED                _REG(unsigned, 0x40028150)
-#define UARTE1_TXSTOPPED                _REG(unsigned, 0x40028158)
-#define UARTE1_SHORTS                   _REG(unsigned, 0x40028200)
-#define UARTE1_INTEN                    _REG(unsigned, 0x40028300)
-#define UARTE1_INTENSET                 _REG(unsigned, 0x40028304)
-#define UARTE1_INTENCLR                 _REG(unsigned, 0x40028308)
-#define UARTE1_ERRORSRC                 _REG(unsigned, 0x40028480)
-#define UARTE1_ENABLE                   _REG(unsigned, 0x40028500)
-#define UARTE1_PSELRTS                  _REG(unsigned, 0x40028508)
-#define UARTE1_PSELTXD                  _REG(unsigned, 0x4002850c)
-#define UARTE1_PSELCTS                  _REG(unsigned, 0x40028510)
-#define UARTE1_PSELRXD                  _REG(unsigned, 0x40028514)
-#define UARTE1_BAUDRATE                 _REG(unsigned, 0x40028524)
-#define UARTE1_RXD                      _REG(dma_param, 0x40028534)
-#define UARTE1_TXD                      _REG(dma_param, 0x40028544)
-#define UARTE1_CONFIG                   _REG(unsigned, 0x4002856c)
-
+extern volatile struct _uarte UARTE0, UARTE1;
+extern volatile struct _uarte * const UARTE[];
+       
 
 /* SAADC -- Successive approximation ADC */
 typedef struct {
@@ -871,35 +1048,31 @@ typedef struct {
     unsigned LIMIT;
 } adc_chan;
 
-
-/* Interrupts */
-#define ADC_INT_STARTED 0
-#define ADC_INT_END 1
-#define ADC_INT_DONE 2
-#define ADC_INT_RESULTDONE 3
-#define ADC_INT_CALDONE 4
-#define ADC_INT_STOPPED 5
-
-#define ADC_BASE                        _BASE(0x40007000)
+struct _adc {
 /* Tasks */
-#define ADC_START                       _REG(unsigned, 0x40007000)
-#define ADC_SAMPLE                      _REG(unsigned, 0x40007004)
-#define ADC_STOP                        _REG(unsigned, 0x40007008)
-#define ADC_CALIBRATE                   _REG(unsigned, 0x4000700c)
+    unsigned START;                     // 0x000
+    unsigned SAMPLE;                    // 0x004
+    unsigned STOP;                      // 0x008
+    unsigned CALIBRATE;                 // 0x00c
 /* Events */
-#define ADC_STARTED                     _REG(unsigned, 0x40007100)
-#define ADC_END                         _REG(unsigned, 0x40007104)
-#define ADC_DONE                        _REG(unsigned, 0x40007108)
-#define ADC_RESULTDONE                  _REG(unsigned, 0x4000710c)
-#define ADC_CALDONE                     _REG(unsigned, 0x40007110)
-#define ADC_STOPPED                     _REG(unsigned, 0x40007114)
+    _PADDING(240)
+    unsigned STARTED;                   // 0x100
+    unsigned END;                       // 0x104
+    unsigned DONE;                      // 0x108
+    unsigned RESULTDONE;                // 0x10c
+    unsigned CALDONE;                   // 0x110
+    unsigned STOPPED;                   // 0x114
 /* Registers */
-#define ADC_INTEN                       _REG(unsigned, 0x40007300)
-#define ADC_INTENSET                    _REG(unsigned, 0x40007304)
-#define ADC_INTENCLR                    _REG(unsigned, 0x40007308)
-#define ADC_BUSY                        _REG(unsigned, 0x40007400)
-#define ADC_ENABLE                      _REG(unsigned, 0x40007500)
-#define ADC_CHAN                        _ARR(adc_chan, 0x40007510)
+    _PADDING(488)
+    unsigned INTEN;                     // 0x300
+    unsigned INTENSET;                  // 0x304
+    unsigned INTENCLR;                  // 0x308
+    _PADDING(244)
+    unsigned BUSY;                      // 0x400
+    _PADDING(252)
+    unsigned ENABLE;                    // 0x500
+    _PADDING(12)
+    adc_chan CHAN[8];                   // 0x510
 #define   ADC_CONFIG_RESP __FIELD(0, 2)
 #define   ADC_CONFIG_RESN __FIELD(4, 2)
 #define     ADC_RES_Bypass 0
@@ -931,14 +1104,27 @@ typedef struct {
 #define  ADC_CONFIG_BURST __FIELD(24, 1)
 #define     ADC_BURST_Disabled 0
 #define     ADC_BURST_Enabled 1
-#define ADC_RESOLUTION                  _REG(unsigned, 0x400075f0)
+    _PADDING(96)
+    unsigned RESOLUTION;                // 0x5f0
 #define   ADC_RESOLUTION_8bit 0
 #define   ADC_RESOLUTION_10bit 1
 #define   ADC_RESOLUTION_12bit 2
 #define   ADC_RESOLUTION_14bit 3
-#define ADC_OVERSAMPLE                  _REG(unsigned, 0x400075f4)
-#define ADC_SAMPLERATE                  _REG(unsigned, 0x400075f8)
-#define ADC_RESULT                      _REG(dma_param, 0x4000762c)
+    unsigned OVERSAMPLE;                // 0x5f4
+    unsigned SAMPLERATE;                // 0x5f8
+    _PADDING(48)
+    dma_param RESULT;                   // 0x62c
+};
+
+/* Interrupts */
+#define ADC_INT_STARTED 0
+#define ADC_INT_END 1
+#define ADC_INT_DONE 2
+#define ADC_INT_RESULTDONE 3
+#define ADC_INT_CALDONE 4
+#define ADC_INT_STOPPED 5
+
+extern volatile struct _adc ADC;
 
 
 /* PWM */
@@ -950,6 +1136,51 @@ typedef struct {
     unsigned char filler[16];
 } pwm_sequence;
 
+struct _pwm {
+/* Tasks */
+    _PADDING(4)
+    unsigned STOP;                      // 0x004
+    unsigned SEQSTART[2];               // 0x008
+    unsigned NEXTSTEP;                  // 0x010
+/* Events */
+    _PADDING(240)
+    unsigned STOPPED;                   // 0x104
+    unsigned SEQSTARTED[2];             // 0x108
+    unsigned SEQEND[2];                 // 0x110
+    unsigned PWMPERIODEND;              // 0x118
+    unsigned LOOPSDONE;                 // 0x11c
+/* Registers */
+    _PADDING(224)
+    unsigned SHORTS;                    // 0x200
+    _PADDING(252)
+    unsigned INTEN;                     // 0x300
+    unsigned INTENSET;                  // 0x304
+    unsigned INTENCLR;                  // 0x308
+    _PADDING(500)
+    unsigned ENABLE;                    // 0x500
+    unsigned MODE;                      // 0x504
+#define   PWM_MODE_Up 0
+#define   PWM_MODE_UpAndDown 1
+    unsigned COUNTERTOP;                // 0x508
+    unsigned PRESCALER;                 // 0x50c
+    unsigned DECODER;                   // 0x510
+#define   PWM_DECODER_LOAD __FIELD(0, 2)
+#define     PWM_LOAD_Common 0
+#define     PWM_LOAD_Grouped 1
+#define     PWM_LOAD_Individual 2
+#define     PWM_LOAD_Waveform 3
+#define   PWM_DECODER_MODE __FIELD(8, 1)
+#define     PWM_MODE_RefreshCount 0
+#define     PWM_MODE_NextStep 1
+    unsigned LOOP;                      // 0x514
+    _PADDING(8)
+    pwm_sequence SEQ[2];                // 0x520
+#define   PWM_SEQ_COMPARE __FIELD(0, 15)
+#define   PWM_SEQ_POLARITY __FIELD(15, 1)
+#define     PWM_POLARITY_RisingEdge 0
+#define     PWM_POLARITY_FallingEdge 1
+    unsigned PSEL[4];                   // 0x560
+};
 
 /* Interrupts */
 #define PWM_INT_STOPPED 1
@@ -973,107 +1204,8 @@ typedef struct {
 #define RISING PWM_POLARITY_RisingEdge
 #define FALLING PWM_POLARITY_FallingEdge
 
-#define PWM0_BASE                       _BASE(0x4001c000)
-/* Tasks */
-#define PWM0_STOP                       _REG(unsigned, 0x4001c004)
-#define PWM0_SEQSTART                   _ARR(unsigned, 0x4001c008)
-#define PWM0_NEXTSTEP                   _REG(unsigned, 0x4001c010)
-/* Events */
-#define PWM0_STOPPED                    _REG(unsigned, 0x4001c104)
-#define PWM0_SEQSTARTED                 _ARR(unsigned, 0x4001c108)
-#define PWM0_SEQEND                     _ARR(unsigned, 0x4001c110)
-#define PWM0_PWMPERIODEND               _REG(unsigned, 0x4001c118)
-#define PWM0_LOOPSDONE                  _REG(unsigned, 0x4001c11c)
-/* Registers */
-#define PWM0_SHORTS                     _REG(unsigned, 0x4001c200)
-#define PWM0_INTEN                      _REG(unsigned, 0x4001c300)
-#define PWM0_INTENSET                   _REG(unsigned, 0x4001c304)
-#define PWM0_INTENCLR                   _REG(unsigned, 0x4001c308)
-#define PWM0_ENABLE                     _REG(unsigned, 0x4001c500)
-#define PWM0_MODE                       _REG(unsigned, 0x4001c504)
-#define   PWM_MODE_Up 0
-#define   PWM_MODE_UpAndDown 1
-#define PWM0_COUNTERTOP                 _REG(unsigned, 0x4001c508)
-#define PWM0_PRESCALER                  _REG(unsigned, 0x4001c50c)
-#define PWM0_DECODER                    _REG(unsigned, 0x4001c510)
-#define   PWM_DECODER_LOAD __FIELD(0, 2)
-#define     PWM_LOAD_Common 0
-#define     PWM_LOAD_Grouped 1
-#define     PWM_LOAD_Individual 2
-#define     PWM_LOAD_Waveform 3
-#define   PWM_DECODER_MODE __FIELD(8, 1)
-#define     PWM_MODE_RefreshCount 0
-#define     PWM_MODE_NextStep 1
-#define PWM0_LOOP                       _REG(unsigned, 0x4001c514)
-#define PWM0_SEQ                        _ARR(pwm_sequence, 0x4001c520)
-#define   PWM_SEQ_COMPARE __FIELD(0, 15)
-#define   PWM_SEQ_POLARITY __FIELD(15, 1)
-#define     PWM_POLARITY_RisingEdge 0
-#define     PWM_POLARITY_FallingEdge 1
-#define PWM0_PSEL                       _ARR(unsigned, 0x4001c560)
-#define PWM1_BASE                       _BASE(0x40021000)
-#define PWM1_STOP                       _REG(unsigned, 0x40021004)
-#define PWM1_SEQSTART                   _ARR(unsigned, 0x40021008)
-#define PWM1_NEXTSTEP                   _REG(unsigned, 0x40021010)
-#define PWM1_STOPPED                    _REG(unsigned, 0x40021104)
-#define PWM1_SEQSTARTED                 _ARR(unsigned, 0x40021108)
-#define PWM1_SEQEND                     _ARR(unsigned, 0x40021110)
-#define PWM1_PWMPERIODEND               _REG(unsigned, 0x40021118)
-#define PWM1_LOOPSDONE                  _REG(unsigned, 0x4002111c)
-#define PWM1_SHORTS                     _REG(unsigned, 0x40021200)
-#define PWM1_INTEN                      _REG(unsigned, 0x40021300)
-#define PWM1_INTENSET                   _REG(unsigned, 0x40021304)
-#define PWM1_INTENCLR                   _REG(unsigned, 0x40021308)
-#define PWM1_ENABLE                     _REG(unsigned, 0x40021500)
-#define PWM1_MODE                       _REG(unsigned, 0x40021504)
-#define PWM1_COUNTERTOP                 _REG(unsigned, 0x40021508)
-#define PWM1_PRESCALER                  _REG(unsigned, 0x4002150c)
-#define PWM1_DECODER                    _REG(unsigned, 0x40021510)
-#define PWM1_LOOP                       _REG(unsigned, 0x40021514)
-#define PWM1_SEQ                        _ARR(pwm_sequence, 0x40021520)
-#define PWM1_PSEL                       _ARR(unsigned, 0x40021560)
-#define PWM2_BASE                       _BASE(0x40022000)
-#define PWM2_STOP                       _REG(unsigned, 0x40022004)
-#define PWM2_SEQSTART                   _ARR(unsigned, 0x40022008)
-#define PWM2_NEXTSTEP                   _REG(unsigned, 0x40022010)
-#define PWM2_STOPPED                    _REG(unsigned, 0x40022104)
-#define PWM2_SEQSTARTED                 _ARR(unsigned, 0x40022108)
-#define PWM2_SEQEND                     _ARR(unsigned, 0x40022110)
-#define PWM2_PWMPERIODEND               _REG(unsigned, 0x40022118)
-#define PWM2_LOOPSDONE                  _REG(unsigned, 0x4002211c)
-#define PWM2_SHORTS                     _REG(unsigned, 0x40022200)
-#define PWM2_INTEN                      _REG(unsigned, 0x40022300)
-#define PWM2_INTENSET                   _REG(unsigned, 0x40022304)
-#define PWM2_INTENCLR                   _REG(unsigned, 0x40022308)
-#define PWM2_ENABLE                     _REG(unsigned, 0x40022500)
-#define PWM2_MODE                       _REG(unsigned, 0x40022504)
-#define PWM2_COUNTERTOP                 _REG(unsigned, 0x40022508)
-#define PWM2_PRESCALER                  _REG(unsigned, 0x4002250c)
-#define PWM2_DECODER                    _REG(unsigned, 0x40022510)
-#define PWM2_LOOP                       _REG(unsigned, 0x40022514)
-#define PWM2_SEQ                        _ARR(pwm_sequence, 0x40022520)
-#define PWM2_PSEL                       _ARR(unsigned, 0x40022560)
-#define PWM3_BASE                       _BASE(0x4002d000)
-#define PWM3_STOP                       _REG(unsigned, 0x4002d004)
-#define PWM3_SEQSTART                   _ARR(unsigned, 0x4002d008)
-#define PWM3_NEXTSTEP                   _REG(unsigned, 0x4002d010)
-#define PWM3_STOPPED                    _REG(unsigned, 0x4002d104)
-#define PWM3_SEQSTARTED                 _ARR(unsigned, 0x4002d108)
-#define PWM3_SEQEND                     _ARR(unsigned, 0x4002d110)
-#define PWM3_PWMPERIODEND               _REG(unsigned, 0x4002d118)
-#define PWM3_LOOPSDONE                  _REG(unsigned, 0x4002d11c)
-#define PWM3_SHORTS                     _REG(unsigned, 0x4002d200)
-#define PWM3_INTEN                      _REG(unsigned, 0x4002d300)
-#define PWM3_INTENSET                   _REG(unsigned, 0x4002d304)
-#define PWM3_INTENCLR                   _REG(unsigned, 0x4002d308)
-#define PWM3_ENABLE                     _REG(unsigned, 0x4002d500)
-#define PWM3_MODE                       _REG(unsigned, 0x4002d504)
-#define PWM3_COUNTERTOP                 _REG(unsigned, 0x4002d508)
-#define PWM3_PRESCALER                  _REG(unsigned, 0x4002d50c)
-#define PWM3_DECODER                    _REG(unsigned, 0x4002d510)
-#define PWM3_LOOP                       _REG(unsigned, 0x4002d514)
-#define PWM3_SEQ                        _ARR(pwm_sequence, 0x4002d520)
-#define PWM3_PSEL                       _ARR(unsigned, 0x4002d560)
+extern volatile struct _pwm PWM0, PWM1, PWM2, PWM3;
+extern volatile struct _pwm * const PWM[];
 
 
 /* NVIC stuff */
@@ -1082,19 +1214,23 @@ typedef struct {
 void irq_priority(int irq, unsigned priority);
 
 /* enable_irq -- enable interrupts from an IRQ */
-#define enable_irq(irq)  NVIC_ISER[0] = BIT(irq)
+void enable_irq(int irq);
 
 /* disable_irq -- disable interrupts from a specific IRQ */
-#define disable_irq(irq)  NVIC_ICER[0] = BIT(irq)
+void disable_irq(int irq);
 
 /* clear_pending -- clear pending interrupt from an IRQ */
-#define clear_pending(irq)  NVIC_ICPR[0] = BIT(irq)
+void clear_pending(int irq);
 
 /* reschedule -- request PendSV interrupt */
-#define reschedule()  SCB_ICSR = BIT(SCB_ICSR_PENDSVSET)
+#define reschedule()  SCB.ICSR = BIT(SCB_ICSR_PENDSVSET)
 
 /* active_irq -- find active interrupt: returns -16 to 31 */
-#define active_irq()  (GET_FIELD(SCB_ICSR, SCB_ICSR_VECTACTIVE) - 16)
+#define active_irq()  (GET_FIELD(SCB.ICSR, SCB_ICSR_VECTACTIVE) - 16)
+
+/* sysreset -- request a system reset */
+#define sysreset()  SCB.AIRCR = FIELD(SCB_AIRCR_VECTKEY, 0x05fa) \
+                                | BIT(SCB_AIRCR_SYSRESETREQ)
 
 /* delay_loop -- timed delay */
 void delay_loop(unsigned usec);
@@ -1102,51 +1238,20 @@ void delay_loop(unsigned usec);
 
 /* GPIO convenience */
 
-#ifndef INLINE
-#define INLINE inline
-#endif
-
-/* Some C language tricks are needed for us to refer to the two GPIO
-   ports uniformly. */
-
-extern unsigned volatile * const gpio_base[2];
-
-#define _GPIO_REG(port, reg) \
-    (* (gpio_base[port] + (&GPIO0_##reg - GPIO0_BASE)))
-
-#define _GPIO_PINCNF(pin) \
-    ((gpio_base[PORT(pin)] + (GPIO0_PINCNF - GPIO0_BASE))[PIN(pin)])
-
 /* gpio_dir -- set GPIO direction */
-INLINE void gpio_dir(unsigned pin, unsigned dir) {
-    if (dir)
-        _GPIO_REG(PORT(pin), DIRSET) = BIT(PIN(pin));
-    else
-        _GPIO_REG(PORT(pin), DIRCLR) = BIT(PIN(pin));
-}
+void gpio_dir(unsigned pin, unsigned dir);
 
 /* gpio_connect -- connect pin for input */
-INLINE void gpio_connect(unsigned pin) {
-    SET_FIELD(_GPIO_PINCNF(pin), GPIO_PINCNF_INPUT, GPIO_INPUT_Connect);
-}
+void gpio_connect(unsigned pin);
 
 /* gpio_drive -- set GPIO drive strength */
-INLINE void gpio_drive(unsigned pin, unsigned mode) {
-    SET_FIELD(_GPIO_PINCNF(pin), GPIO_PINCNF_DRIVE, mode);
-}
+void gpio_drive(unsigned pin, unsigned mode);
 
 /* gpio_out -- set GPIO output value */
-INLINE void gpio_out(unsigned pin, unsigned value) {
-    if (value)
-        _GPIO_REG(PORT(pin), OUTSET) = BIT(PIN(pin));
-    else
-        _GPIO_REG(PORT(pin), OUTCLR) = BIT(PIN(pin));
-}
+void gpio_out(unsigned pin, unsigned value);
 
 /* gpio_in -- get GPIO input bit */
-INLINE unsigned gpio_in(unsigned pin) {
-    return GET_BIT(_GPIO_REG(PORT(pin), IN), PIN(pin));
-}
+unsigned gpio_in(unsigned pin);
 
 
 /* Image constants */
@@ -1174,9 +1279,9 @@ typedef unsigned image[NIMG];
       _ROW(ROW4, x41, x42, x43, x44, x45), \
       _ROW(ROW5, x51, x52, x53, x54, x55) }
 
-#define led_init()  GPIO0_DIRSET = LED_MASK0, GPIO1_DIRSET = LED_MASK1
-#define led_dot()   GPIO0_OUTSET = LED_DOT0, GPIO1_OUTSET = LED_DOT1
-#define led_off()   GPIO0_OUTCLR = LED_MASK0, GPIO1_OUTCLR = LED_MASK1
+#define led_init()  GPIO0.DIRSET = LED_MASK0, GPIO1.DIRSET = LED_MASK1
+#define led_dot()   GPIO0.OUTSET = LED_DOT0, GPIO1.OUTSET = LED_DOT1
+#define led_off()   GPIO0.OUTCLR = LED_MASK0, GPIO1.OUTCLR = LED_MASK1
 
 
 /* CODERAM -- mark function for copying to RAM */
@@ -1189,7 +1294,6 @@ typedef unsigned image[NIMG];
                            asm volatile ("mrs %0, primask" : "=r"(x)); x; })
 #define set_primask(x)  asm volatile ("msr primask, %0" : : "r"(x))
 #define nop()           asm volatile ("nop")
-#define syscall(op)     asm volatile ("svc %0" : : "i"(op))
 
 /* pause() -- disabled on V2 owing to long wakeup time */
 #define pause()         /* asm volatile ("wfe") */

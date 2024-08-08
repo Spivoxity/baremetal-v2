@@ -12,7 +12,6 @@ typedef unsigned char byte;
 /* Common message types */
 #define INTERRUPT 1
 #define REPLY 2
-#define TIMEOUT 3
 #define REGISTER 4
 #define PING 5
 #define REQUEST 6
@@ -112,15 +111,15 @@ unsigned timer_now(void);
 unsigned timer_micros(void);
 void timer_init(void);
 
-/* i2c.c */
-int i2c_probe(int chan, int addr);
-int i2c_read_reg(int chan, int addr, int cmd);
-void i2c_write_reg(int chan, int addr, int cmd, int val);
-void i2c_read_bytes(int chan, int addr, int cmd, byte *buf, int n);
-void i2c_write_bytes(int chan, int addr, int cmd, byte *buf, int n);
-int i2c_xfer(int chan, int kind, int addr,
+/* i2c-gen.c */
+int i2c_probe(int bus, int addr);
+int i2c_read_reg(int bus, int addr, int cmd);
+void i2c_write_reg(int bus, int addr, int cmd, int val);
+void i2c_read_bytes(int bus, int addr, int cmd, byte *buf, int n);
+void i2c_write_bytes(int bus, int addr, int cmd, byte *buf, int n);
+int i2c_xfer(int bus, int kind, int addr,
              byte *buf1, int n1, byte *buf2, int n2);
-void i2c_init(int chan);
+void i2c_init(int bus);
 
 /* radio.c */
 #define RADIO_PACKET 128

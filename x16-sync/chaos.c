@@ -8,14 +8,20 @@
 int MAY, FARAGE;
 
 char *slogan[] = {
-    "no deal is better than a bad deal",
-    "BREXIT MEANS BREXIT!"
+    "no deal is better than a bad deal\n",
+    "BREXIT MEANS BREXIT!\n"
 };
+
+void serial_puts(char *s)
+{
+    for (char *p = s; *p != '\0'; p++)
+        serial_putc(*p);
+}
 
 void guest(int n)
 {
     while (1) {
-        printf("%s\n", slogan[n]);
+        serial_puts(slogan[n]);
     }
 }
 

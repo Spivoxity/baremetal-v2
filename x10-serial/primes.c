@@ -13,15 +13,15 @@ int txinit;              /* UART ready to transmit first char */
 /* serial_init -- set up UART connection to host */
 void serial_init(void)
 {
-    UART_ENABLE = UART_ENABLE_Disabled;
-    UART_BAUDRATE = UART_BAUDRATE_9600; /* 9600 baud */
-    UART_CONFIG = FIELD(UART_CONFIG_PARITY, UART_PARITY_None);
+    UART.ENABLE = UART_ENABLE_Disabled;
+    UART.BAUDRATE = UART_BAUDRATE_9600; /* 9600 baud */
+    UART.CONFIG = FIELD(UART_CONFIG_PARITY, UART_PARITY_None);
                                         /* format 8N1 */
-    UART_PSELTXD = TX;                  /* choose pins */
-    UART_PSELRXD = RX;
-    UART_ENABLE = UART_ENABLE_Enabled;
-    UART_TXDRDY = 0;
-    UART_STARTTX = 1;
+    UART.PSELTXD = TX;                  /* choose pins */
+    UART.PSELRXD = RX;
+    UART.ENABLE = UART_ENABLE_Enabled;
+    UART.TXDRDY = 0;
+    UART.STARTTX = 1;
     txinit = 1;
 }
 
@@ -29,11 +29,11 @@ void serial_init(void)
 void serial_putc(char ch)
 {
     if (! txinit) {
-        while (! UART_TXDRDY) { }
+        while (! UART.TXDRDY) { }
     }
     txinit = 0;
-    UART_TXDRDY = 0;
-    UART_TXD = ch;
+    UART.TXDRDY = 0;
+    UART.TXD = ch;
 }
 
 /* print_buf -- output routine for use by printf */
@@ -70,10 +70,10 @@ void start_timer(void)
 {
     led_dot();
 
-    TIMER0_MODE = TIMER_MODE_Timer;
-    TIMER0_BITMODE = TIMER_BITMODE_32Bit;
-    TIMER0_PRESCALER = 4; /* Count at 1MHz */
-    TIMER0_START = 1;
+    TIMER0.MODE = TIMER_MODE_Timer;
+    TIMER0.BITMODE = TIMER_BITMODE_32Bit;
+    TIMER0.PRESCALER = 4; /* Count at 1MHz */
+    TIMER0.START = 1;
 }
 
 /* stop_timer -- turn off LED and print timer result */
@@ -81,8 +81,8 @@ void stop_timer(void)
 {
     led_off();
 
-    TIMER0_CAPTURE[0] = 1;
-    unsigned time1 = TIMER0_CC[0];
+    TIMER0.CAPTURE[0] = 1;
+    unsigned time1 = TIMER0.CC[0];
     printf("%d millisec\n", (time1+500)/1000);
 }
 

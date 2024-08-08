@@ -34,16 +34,16 @@ static volatile int group = 0;
 /* init_radio -- initialise radio hardware */
 static void init_radio()
 {
-    RADIO_TXPOWER = 0;          /* Default transmit power */
-    RADIO_FREQUENCY = FREQ;     /* Transmission frequency */
-    RADIO_MODE = RADIO_MODE_NRF_1Mbit; /* 1Mbit/sec data rate */
-    RADIO_BASE0 = 0x75626974;   /* That spells 'ubit' */
-    RADIO_TXADDRESS = 0;        /* Use address 0 for transmit */
-    RADIO_RXADDRESSES = BIT(0); /*   and also (just one) for receive. */
+    RADIO.TXPOWER = 0;          /* Default transmit power */
+    RADIO.FREQUENCY = FREQ;     /* Transmission frequency */
+    RADIO.MODE = RADIO_MODE_NRF_1Mbit; /* 1Mbit/sec data rate */
+    RADIO.BASE0 = 0x75626974;   /* That spells 'ubit' */
+    RADIO.TXADDRESS = 0;        /* Use address 0 for transmit */
+    RADIO.RXADDRESSES = BIT(0); /*   and also (just one) for receive. */
 
     /* Basic configuration */
-    RADIO_PCNF0 = FIELD(RADIO_PCNF0_LFLEN, 8); /* One 8-bit length field */
-    RADIO_PCNF1 = BIT(RADIO_PCNF1_WHITEEN) /* Whitening enabled */
+    RADIO.PCNF0 = FIELD(RADIO_PCNF0_LFLEN, 8); /* One 8-bit length field */
+    RADIO.PCNF1 = BIT(RADIO_PCNF1_WHITEEN) /* Whitening enabled */
         | FIELD(RADIO_PCNF1_BALEN, 4) /* Base address is 4 bytes */
         | FIELD(RADIO_PCNF1_MAXLEN, RADIO_PACKET+3)
                                 /* Max packet length allows for 3 byte prefix */
@@ -51,10 +51,10 @@ static void init_radio()
                                 /* Fields transmitted LSB first */
 
     /* CRC and whitening settings -- match micro_bit runtime */
-    RADIO_CRCCNF = 2;           /* CRC is 2 bytes */
-    RADIO_CRCINIT = 0xffff;
-    RADIO_CRCPOLY = 0x11021;
-    RADIO_DATAWHITEIV = 0x18;
+    RADIO.CRCCNF = 2;           /* CRC is 2 bytes */
+    RADIO.CRCINIT = 0xffff;
+    RADIO.CRCPOLY = 0x11021;
+    RADIO.DATAWHITEIV = 0x18;
 }
 
 /* radio_await -- wait for expected interrupt */
@@ -79,28 +79,28 @@ static void radio_task(int dummy)
     init_radio();
 
     /* Configure interrupts */
-    RADIO_INTENSET =
+    RADIO.INTENSET =
         BIT(RADIO_INT_READY) | BIT(RADIO_INT_END) | BIT(RADIO_INT_DISABLED);
     connect(RADIO_IRQ);
     enable_irq(RADIO_IRQ);
 
     /* Set packet buffer */
-    RADIO_PACKETPTR = &packet_buffer;
+    RADIO.PACKETPTR = &packet_buffer;
 
     while (1) {
         receive(ANY, &m);
         switch (m.type) {
         case INTERRUPT:
             /* A packet has been received */
-            if (!RADIO_END || mode != LISTENING)
+            if (!RADIO.END || mode != LISTENING)
                 panic("unexpected radio interrrupt");
-            RADIO_END = 0;
+            RADIO.END = 0;
             clear_pending(RADIO_IRQ);
             enable_irq(RADIO_IRQ);
 
-            if (RADIO_CRCSTATUS == 0 || packet_buffer.group != group) {
+            if (RADIO.CRCSTATUS == 0 || packet_buffer.group != group) {
                 /* Ignore the packet and listen again */
-                RADIO_START = 1;
+                RADIO.START = 1;
                 break;
             }
 
@@ -117,20 +117,20 @@ static void radio_task(int dummy)
             buffer = m.ptr1;
 
             if (mode == ASLEEP) {
-                RADIO_RXEN = 1;
-                radio_await(&RADIO_READY);
+                RADIO.RXEN = 1;
+                radio_await(&RADIO.READY);
             }
 
-            RADIO_PREFIX0 = group;
-            RADIO_START = 1;
+            RADIO.PREFIX0 = group;
+            RADIO.START = 1;
             mode = LISTENING;
             break;
 
         case SEND:
             if (mode != ASLEEP) {
                 /* The radio was set up for receiving: disable it */
-                RADIO_DISABLE = 1;
-                radio_await(&RADIO_DISABLED);
+                RADIO.DISABLE = 1;
+                radio_await(&RADIO.DISABLED);
             }
 
             /* Assemble the packet */
@@ -142,23 +142,23 @@ static void radio_task(int dummy)
             memcpy(packet_buffer.data, m.ptr1, n);
 
             /* Enable for sending and transmit the packet */
-            RADIO_TXEN = 1;
-            radio_await(&RADIO_READY);
-            RADIO_PREFIX0 = group;
-            RADIO_START = 1;
-            radio_await(&RADIO_END);
+            RADIO.TXEN = 1;
+            radio_await(&RADIO.READY);
+            RADIO.PREFIX0 = group;
+            RADIO.START = 1;
+            radio_await(&RADIO.END);
 
             /* Disable the transmitter -- otherwise it jams the airwaves */
-            RADIO_DISABLE = 1;
-            radio_await(&RADIO_DISABLED);
+            RADIO.DISABLE = 1;
+            radio_await(&RADIO.DISABLED);
 
             if (mode != LISTENING)
                 mode = ASLEEP;
             else {
                 /* Go back to listening */
-                RADIO_RXEN = 1;
-                radio_await(&RADIO_READY);
-                RADIO_START = 1;
+                RADIO.RXEN = 1;
+                radio_await(&RADIO.READY);
+                RADIO.START = 1;
             }
 
             send_msg(m.sender, REPLY);

@@ -6,15 +6,15 @@
     .syntax unified
     .text
 
-@@@ set_stack -- enter process mode
-    .global set_stack
+@@@ __run -- enter process mode
+    .global __run
     .thumb_func
-set_stack:
-    msr psp, r0                 @ Set up the stack
-    movs r0, #2                 @ Use psp for stack pointer
-    msr control, r0
+__run:
+    msr psp, r1                 @ Set up the stack
+    movs r2, #2                 @ Use psp for stack pointer
+    msr control, r2
     isb                         @ Drain the pipeline
-    bx lr
+    bx r0                       @ Call the body
         
 @@@ Stack layout for interrupt frames (17 words, 68 bytes)
 @@@ --------------------------------------
@@ -73,27 +73,3 @@ pendsv_handler:
     isave                       @ Complete saving of process state
     bl cxt_switch               @ Choose a new process
     irestore                    @ Restore state for that process
-
-@@@ System call stubs
-
-@@ Each function defined here leaves its arguments in r0, r1, etc.,
-@@ and executes an SVC instruction with operand equal to the system call
-@@ number.  After saving the state, the exception handler for SVC
-@@ invokes system_call(), which retrieves the call number and arguments
-@@ from the exception frame.  The call numbers here agree with macros
-@@ SYS_YIELD, etc., defined in microbian.c.
-
-    .macro stub name, op
-    .global \name
-    .thumb_func
-\name:
-    svc \op
-    bx lr
-    .endm
-
-    stub yield, 0
-    stub send, 1
-    stub receive, 2
-    stub sendrec, 3
-    stub exit, 4
-    stub dump, 5

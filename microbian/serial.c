@@ -107,15 +107,15 @@ from setting it again. */
 /* serial_interrupt -- handle serial interrupt */
 static void serial_interrupt(void)
 {
-    if (UART_RXDRDY) {
-        char ch = UART_RXD;
+    if (UART.RXDRDY) {
+        char ch = UART.RXD;
         keypress(ch);
-        UART_RXDRDY = 0;
+        UART.RXDRDY = 0;
     }
 
-    if (UART_TXDRDY) {
+    if (UART.TXDRDY) {
         txidle = 1;
-        UART_TXDRDY = 0;
+        UART.TXDRDY = 0;
     }
 
     clear_pending(UART_IRQ);
@@ -135,7 +135,7 @@ static void reply(void)
 
     /* Can we start transmitting a character? */
     if (txidle && n_tx > 0) {
-        UART_TXD = txbuf[tx_outp];
+        UART.TXD = txbuf[tx_outp];
         tx_outp = wrap(tx_outp+1);
         n_tx--;
         txidle = 0;
@@ -165,17 +165,17 @@ static void serial_task(int arg)
     char ch;
     char *buf;
 
-    UART_ENABLE = UART_ENABLE_Disabled;
-    UART_BAUDRATE = UART_BAUDRATE_9600; /* 9600 baud */
-    UART_CONFIG = FIELD(UART_CONFIG_PARITY, UART_PARITY_None);
+    UART.ENABLE = UART_ENABLE_Disabled;
+    UART.BAUDRATE = UART_BAUDRATE_9600; /* 9600 baud */
+    UART.CONFIG = FIELD(UART_CONFIG_PARITY, UART_PARITY_None);
                                         /* format 8N1 */
-    UART_PSELTXD = TX;                  /* choose pins */
-    UART_PSELRXD = RX;
-    UART_ENABLE = UART_ENABLE_Enabled;
-    UART_STARTTX = 1;
-    UART_STARTRX = 1;
-    UART_RXDRDY = 0;
-    UART_INTENSET = BIT(UART_INT_RXDRDY) | BIT(UART_INT_TXDRDY);
+    UART.PSELTXD = TX;                  /* choose pins */
+    UART.PSELRXD = RX;
+    UART.ENABLE = UART_ENABLE_Enabled;
+    UART.STARTTX = 1;
+    UART.STARTRX = 1;
+    UART.RXDRDY = 0;
+    UART.INTENSET = BIT(UART_INT_RXDRDY) | BIT(UART_INT_TXDRDY);
     connect(UART_IRQ);
     enable_irq(UART_IRQ);
 

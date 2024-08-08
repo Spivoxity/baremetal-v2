@@ -10,9 +10,15 @@ int MAY, FARAGE, HUMPHRYS;
 #define SPEAK 23
 
 char *slogan[] = {
-    "no deal is better than a bad deal",
-    "BREXIT MEANS BREXIT!"
+    "no deal is better than a bad deal\n",
+    "BREXIT MEANS BREXIT!\n"
 };
+
+void serial_puts(char *s)
+{
+    for (char *p = s; *p != '\0'; p++)
+        serial_putc(*p);
+}
 
 void host(int n)
 {
@@ -24,7 +30,7 @@ void host(int n)
         receive(SPEAK, &m);
         speaker = m.sender;
         line = m.ptr1;
-        printf("%s\n", line);
+        serial_puts(line);
         send_msg(speaker, REPLY);
     }
 }
