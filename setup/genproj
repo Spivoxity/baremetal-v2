@@ -29,13 +29,13 @@ project x07-hack hack total.c total
 project x08-heart part2 heart.c heart
 project x09-pureasm pureasm blinky.s blinky
 project x10-serial part2 primes.c primes
-project x11-interrupt part2 primes2.c primes2
+project x11-interrupts part2 primes2.c primes2
 project x12-intrmech part2 bitbang.c bitbang
 project x13-neopixels part2 rainbow.c rainbow
 project x14-processes part3 valentine.c valentine
 project x15-messages part3 pcount.c pcount
 project x16-sync part3 chaos.c chaos
-project x17-driver part3 myprimes.c myprimes
+project x17-drivers part3 myprimes.c myprimes
 project x18-level part3 level.c level
 project x19-servos part3 buggy.c buggy
 project x20-radio part3 remote.c remote

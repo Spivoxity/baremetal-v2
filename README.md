@@ -4,25 +4,25 @@ Bare metal micro:bit &ndash; code for V2
 This repository contains code for the experiments that are described
 in the book,
 [_Bare metal micro:bit_](https://spivey.oriel.ox.ac.uk/baremetal),
-in a version suitable for the V2 micro:bit with an nRF52833
+configured for the V2 micro:bit with an nRF52833
 microcontroller chip.
 
 Note than in August, 2024, I published a new revision of the code that
 uses a changed convention `UART.TXD` for referring to device
 registers, in place of the convention `UART_TXD` that was used before.
 This means changes to almost every source file, and will break any
-code that others have added to a fork if the repository.  This won't
+code that others have added to a fork of the repository.  This won't
 happen again.
 
 Each experiment has a separate directory containing all the files it needs:
 | Directory | Description |
 |:----------|:------------|
-| `x01-echo` | Building a program: _Check you can build and upload a simple program (written in pure C) that echoes lines typed on the terminal_. |
-| `x02-instrs` | Machine instructions: _Investigate the effect of single machine instructions using an interactive program_. |
+| `x01-echo` | Building a program: _Check that you can build and upload a simple program_. |
+| `x02-instrs` | Machine instructions: _Investigate the effect of single machine instructions_. |
 | `x03-loops` | Loops: _Write programs for multiplication and division that contain loops_. |
 | `x04-numbers` | Numbers: _Explore number representations and conditional branches_. |
 | `x05-subrs` | Subroutines: _Learn how to define and call subroutines to give structure to a larger program_. |
-| `x06-memory` | Memory and arrays: _Exploit instructions that load and store data in RAM_. |
+| `x06-arrays` | Memory and arrays: _Exploit instructions that load and store data in RAM_. |
 | `x07-hack` | A buffer overrun attack: _Build a working (but harmless) model of a computer virus_. |
 | `x08-heart` | Digital input/output: _Use device registers to control I/O pins and light LEDs_. |
 | `x09-pureasm` | Pure assembly language: _Flash an LED with a minimal program written in assembly language_. |
