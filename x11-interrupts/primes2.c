@@ -1,4 +1,4 @@
-/* x11-interrupt/primes2.c */
+/* x11-interrupts/primes2.c */
 /* Copyright (c) 2018 J. M. Spivey */
 
 #include "hardware.h"

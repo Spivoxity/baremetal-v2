@@ -1,6 +1,6 @@
-# x17-driver/Makefile
+# x17-drivers/Makefile
 # Copyright (c) 2020-21 J. M. Spivey
-# genmake x17-driver myprimes.hex part3 {} myserial.o
+# genmake x17-drivers myprimes.hex part3 {} myserial.o
 
 all: myprimes.hex
 

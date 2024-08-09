@@ -1,4 +1,4 @@
-/* x17-driver/myserial.c */
+/* x17-drivers/myserial.c */
 /* Copyright (c) 2020 J. M. Spivey */
 
 #include "microbian.h"
@@ -17,8 +17,8 @@ static int SERIAL_TASK;
 
 /* Output buffer */
 static char txbuf[NBUF];        /* Circular buffer for output */
-static int bufin = 0;          /* In pointer */
-static int bufout = 0;         /* Out pointer */
+static int bufin = 0;           /* In pointer */
+static int bufout = 0;          /* Out pointer */
 static int n_tx = 0;            /* Character count */
 
 static int txidle = 1;          /* True if transmitter is idle */

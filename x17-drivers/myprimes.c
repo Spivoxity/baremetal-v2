@@ -1,4 +1,4 @@
-/* x17-driver/myprimes.c */
+/* x17-drivers/myprimes.c */
 /* Copyright (c) 2020 J. M. Spivey */
 
 #include "microbian.h"

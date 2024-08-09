@@ -1,6 +1,6 @@
-# x11-interrupt/Makefile
+# x11-interrupts/Makefile
 # Copyright (c) 2020-21 J. M. Spivey
-# genmake x11-interrupt primes2.hex part2 {} lib.o
+# genmake x11-interrupts primes2.hex part2 {} lib.o
 
 all: primes2.hex
 
