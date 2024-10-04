@@ -22,7 +22,7 @@ sudo apt-get -y install \
      geany geany-plugin-projectorganizer \
      gcc-arm-none-eabi gdb-multiarch python3-pyocd \
      pulseview sigrok-firmware-fx2lafw minicom \
-     bsdextrautils sed
+     bsdextrautils sed python3
 # bsdextrautils for hexdump
 /bin/echo
 
@@ -51,7 +51,7 @@ set-option $geanyexts Extensions GnuARM '*.s;*.S;'
 /bin/echo "*** Setting preferences for Geany"
 geanyconf=$HOME/.config/geany/geany.conf
 
-# Geany: set number of build menu items
+# Geany: set number of build menu items: pray nobody else has set them
 set-option $geanyconf build-menu number_ft_menu_items 4
 set-option $geanyconf build-menu number_non_ft_menu_items 4
 set-option $geanyconf build-menu number_exec_menu_items 4
