@@ -12,7 +12,6 @@ OBJCOPY = arm-none-eabi-objcopy
 
 CPU = -mcpu=cortex-m4 -mthumb
 CFLAGS = -O -g -Wall -ffreestanding
-MPX = mpx-m4.o
 
 %.a:
 	$(AR) cr $@ $^
@@ -30,7 +29,7 @@ clean:
 
 DRIVERS = timer.o serial.o i2c.o radio.o display.o
 
-MICROBIAN = microbian.o $(MPX) $(DRIVERS) lib.o
+MICROBIAN = microbian.o mpx.o $(DRIVERS) lib.o
 
 microbian.a: $(MICROBIAN)
 

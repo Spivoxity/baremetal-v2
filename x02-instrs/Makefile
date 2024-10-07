@@ -16,7 +16,6 @@ CFLAGS = -O -g -Wall -ffreestanding
 DEPS = fmain.o lib.o
 STARTUP = startup.o
 LIBS = -lgcc
-LDSCRIPT = nRF52833.ld
 
 %.o: %.c
 	$(CC) $(CPU) $(CFLAGS) $(INCLUDE) -c $< -o $@
@@ -26,7 +25,7 @@ LDSCRIPT = nRF52833.ld
 
 # Use ld for linking to help with the explanation
 %.elf: %.o $(DEPS) $(STARTUP)
-	$(LD) -T $(LDSCRIPT) $^ -o $@ -Map $*.map
+	$(LD) -T device.ld $^ -o $@ -Map $*.map
 	$(SIZE) $@
 
 %.hex: %.elf

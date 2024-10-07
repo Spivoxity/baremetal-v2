@@ -17,7 +17,6 @@ INCLUDE = -I ../microbian
 DEPS = accel.o
 STARTUP = ../microbian/microbian.a ../microbian/startup.o
 LIBS = -lgcc -lc
-LDSCRIPT = ../microbian/nRF52833.ld
 
 vpath %.h ../microbian
 
@@ -28,7 +27,7 @@ vpath %.h ../microbian
 	$(AS) $(CPU) $< -o $@
 
 %.elf: %.o $(DEPS) $(STARTUP)
-	$(CC) $(CPU) $(CFLAGS) -T $(LDSCRIPT) \
+	$(CC) $(CPU) $(CFLAGS) -T ../microbian/device.ld \
 		$^ -nostdlib $(LIBS) -o $@ -Wl,-Map,$*.map
 	$(SIZE) $@
 
