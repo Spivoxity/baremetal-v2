@@ -17,6 +17,7 @@ SECTIONS {
         KEEP(*(.vectors))
         *(.text*)
         *(.rodata*)
+        *(.eh_frame)
         . = ALIGN(4);
         __etext = .;
     } > FLASH
