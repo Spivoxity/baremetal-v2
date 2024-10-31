@@ -1288,12 +1288,10 @@ typedef unsigned image[NIMG];
 #define CODERAM  __attribute((noinline, section(".xram")))
 
 /* A few assembler macros for single instructions. */
+#define pause()         asm volatile ("wfe")
 #define intr_disable()  asm volatile ("cpsid i")
 #define intr_enable()   asm volatile ("cpsie i")
 #define get_primask()   ({ unsigned x;                                   \
                            asm volatile ("mrs %0, primask" : "=r"(x)); x; })
 #define set_primask(x)  asm volatile ("msr primask, %0" : : "r"(x))
 #define nop()           asm volatile ("nop")
-
-/* pause() -- disabled on V2 owing to long wakeup time */
-#define pause()         /* asm volatile ("wfe") */
