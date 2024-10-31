@@ -136,8 +136,8 @@ argument to be a macro that expands the a 'position, width' pair. */
 define a handler with either name */
 #define i2c0_handler i2c0_spi0_handler
 #define spi0_handler i2c0_spi0_handler
-#define i2c1_handler i2c0_spi1_handler
-#define spi1_handler i2c0_spi1_handler
+#define i2c1_handler i2c1_spi1_handler
+#define spi1_handler i2c1_spi1_handler
 
 
 /* Device registers */

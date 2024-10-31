@@ -47,7 +47,7 @@ void heart_task(int n)
     gpio_drive(ROW4, GPIO_DRIVE_S0H1);
     gpio_drive(ROW5, GPIO_DRIVE_S0H1);
 
-    priority(P_HIGH);
+    /* priority(P_HIGH); */
 
     while (1) {
         show(heart, 70);

@@ -33,6 +33,7 @@ SECTIONS {
            which is of no use to us. */
         *(.ARM.extab)
         *(.ARM.exidx)
+        *(.eh_frame*)
     }
 
     .data : AT (LOADADDR(.xram) + SIZEOF(.xram)) {
