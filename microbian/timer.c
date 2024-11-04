@@ -6,15 +6,14 @@
 
 static int TIMER_TASK;
 
-#ifdef UBIT_V2
-#define TICK 1                  /* Interval between updates (ms) */
-#endif
+#define DELAY 33
+#define PULSE 34
 
-#ifndef TICK
-#define TICK 5                  /* Sensible default */
-#endif
+#define TICK 5                  /* Interval between ticks (ms) */
 
 #define MAX_TIMERS 8
+
+static int max = 0;             /* Max timers actually in use */
 
 /* Millis will overflow in about 46 days, but that's long enough. */
 
@@ -24,13 +23,14 @@ static unsigned millis = 0;
 /* timer -- array of data for pending timer messages */
 static struct {
     int client;      /* Process that receives message, or -1 if empty */
-    unsigned period; /* Interval between messages, or 0 for one-shot */
+    int msgtype;     /* Message to send */
     unsigned next;   /* Next time to send a message */
+    unsigned period; /* Interval between messages if msgtype = PING */
 } timer[MAX_TIMERS];
 
 /* check_timers is called by the timer task and sends messages
    directly to clients.  We assume that each client is waiting to
-   receive a PING message: otherwise the progress of the entire system
+   receive the message: otherwise the progress of the entire system
    will be held up, possibly leading to deadlock. */
 
 /* check_timers -- send any messages that are due */
@@ -38,21 +38,18 @@ static void check_timers(void)
 {
     int i;
 
-    for (i = 0; i < MAX_TIMERS; i++) {
+    for (i = 0; i < max; i++) {
         if (timer[i].client >= 0 && millis >= timer[i].next) {
-            send_int(timer[i].client, PING, timer[i].next);
-
-            if (timer[i].period > 0)
-                timer[i].next += timer[i].period;
-            else
+            send_int(timer[i].client, timer[i].msgtype, timer[i].next);
+            timer[i].next += timer[i].period;
+            if (timer[i].msgtype != PING)
                 timer[i].client = -1;
-
         }
     }
 }
 
 /* create -- create a new timer */
-static void create(int client, int delay, int repeat)
+static void create(int client, int msgtype, int delay)
 {
     int i = 0;
 
@@ -62,6 +59,8 @@ static void create(int client, int delay, int repeat)
     if (i == MAX_TIMERS)
         panic("Too many timers");
 
+    if (i == max) max++;
+
     /* If we are between ticks when the timer is created, then the
        timer will go off up to one tick early.  We could add on a tick
        to compensate for this, but most applications work better
@@ -70,8 +69,9 @@ static void create(int client, int delay, int repeat)
        tick, then the effect is what is usually wanted. */
 
     timer[i].client = client;
+    timer[i].msgtype = msgtype;
     timer[i].next = millis + delay;
-    timer[i].period = repeat;
+    timer[i].period = delay;
 }
 
 /* timer1_handler -- interrupt handler */
@@ -112,8 +112,12 @@ static void timer_task(int n)
             check_timers();
             break;
 
-        case REGISTER:
-            create(m.sender, m.int1, m.int2);
+        case DELAY:
+            create(m.sender, REPLY, m.int1);
+            break;
+
+        case PULSE:
+            create(m.sender, PING, m.int1);
             break;
 
         default:
@@ -179,24 +183,18 @@ unsigned timer_micros(void)
 void timer_delay(int msec)
 {
     message m;
-    m.type = REGISTER;
+    m.type = DELAY;
     m.int1 = msec;
-    m.int2 = 0;                 /* Don't repeat */
-    send(TIMER_TASK, &m);
-    receive(PING, NULL);
+    sendrec(TIMER_TASK, &m);
 }
 
 /* timer_pulse -- regular pulse */
 void timer_pulse(int msec)
 {
-    message m;
-    m.type = REGISTER;
-    m.int1 = msec;
-    m.int2 = msec;              /* Repetitive */
-    send(TIMER_TASK, &m);
+    send_int(TIMER_TASK, PULSE, msec);
 }
 
-/* wait -- sleep until next timer pulse */
+/* timer_wait -- sleep until next timer pulse */
 void timer_wait(void)
 {
     receive(PING, NULL);
