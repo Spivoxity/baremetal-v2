@@ -131,7 +131,7 @@ void display_task(int dummy)
         if (n == 10) n = 0;
 #endif
 
-        receive(PING, NULL);
+        receive_msg(PING);
     }
 }
 

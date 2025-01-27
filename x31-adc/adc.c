@@ -42,7 +42,7 @@ static void adc_task(int dummy)
     /* Run a calibration cycle to set the zero point. */
     ADC.ENABLE = 1;
     ADC.CALIBRATE = 1;
-    receive(INTERRUPT, NULL);
+    receive_msg(INTERRUPT);
     assert(ADC.CALDONE);
     ADC.CALDONE = 0;
     clear_pending(ADC_IRQ);
@@ -61,7 +61,7 @@ static void adc_task(int dummy)
         SET_FIELD(ADC.CONFIG, ADC_CONFIG_PSEL, BIT(chan));
         ADC.ENABLE = 1;
         ADC.START = 1;
-        receive(INTERRUPT, NULL);
+        receive_msg(INTERRUPT);
         assert(ADC.END);
         result = ADC.RESULT;
         ADC.END = 0;
@@ -76,7 +76,7 @@ static void adc_task(int dummy)
         ADC.RESULT.MAXCNT = 1;
         ADC.START = 1;
         ADC.SAMPLE = 1;
-        receive(INTERRUPT, NULL);
+        receive_msg(INTERRUPT);
         assert(ADC.END);
         assert(ADC.RESULT.AMOUNT == 1);
         ADC.END = 0;

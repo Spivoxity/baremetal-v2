@@ -50,7 +50,7 @@ void main_task(int arg)
     timer_pulse(100);
 
     while (1) {
-        receive(PING, NULL);
+        receive_msg(PING);
 
         i2c_read_bytes(I2C_EXTERNAL, RTC_ADDR, 0, buf, 3);
         secs = bcd_decode(buf[RTC_SEC] & 0x7f);

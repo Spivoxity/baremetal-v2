@@ -147,7 +147,7 @@ static void queue_char(char ch)
 {
     while (n_tx == NBUF) {
         /* The buffer is full -- wait for a space to appear */
-        receive(INTERRUPT, NULL);
+        receive_msg(INTERRUPT);
         serial_interrupt();
         reply();
     }

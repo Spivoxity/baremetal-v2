@@ -58,11 +58,15 @@ void yield(void);
 void send(int dst, message *msg);
 void send_msg(int dst, int type);
 void send_int(int dst, int type, int val);
+void send_ptr(int dst, int type, void *ptr);
 
 /* receive -- receive a message */
 void receive(int type, message *msg);
+void receive_msg(int type);
+int receive_int(int type);
+void *receive_ptr(int type);
 
-/* sendrec -- send followed by receive */
+/* sendrec -- send followed by receive of REPLY */
 void sendrec(int dst, message *msg);
 
 /* connect -- register to receive interrupt messages */

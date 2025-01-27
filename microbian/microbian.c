@@ -201,7 +201,7 @@ static inline void choose_proc(void)
 /* These versions of send and receive are invoked indirectly from user
 processes via the system calls send() and receive(). */
 
-/* accept -- test if a process is waiting for a message of given type */
+/* accept -- test if a process is waiting for a message of a given type */
 static inline int accept(proc pdest, int type)
 {
     return (pdest->state == RECEIVING
@@ -211,10 +211,8 @@ static inline int accept(proc pdest, int type)
 /* deliver -- copy a message and make the destination ready */
 static inline void deliver(proc pdest, proc psrc)
 {
-    if (pdest->msgbuf) {
-        *(pdest->msgbuf) = *(psrc->msgbuf);
-        pdest->msgbuf->sender = psrc->pid;
-    }
+    *(pdest->msgbuf) = *(psrc->msgbuf);
+    pdest->msgbuf->sender = psrc->pid;
     make_ready(pdest);
 }
 
@@ -403,14 +401,11 @@ void priority(int p)
 void interrupt(int dest)
 {
     proc pdest = os_ptable[dest];
-    message *msg = pdest->msgbuf;
 
     if (accept(pdest, INTERRUPT)) {
         /* Receiver is waiting for an interrupt */
-        if (msg) {
-            msg->sender = HARDWARE;
-            msg->type = INTERRUPT;
-        }
+        pdest->msgbuf->sender = HARDWARE;
+        pdest->msgbuf->type = INTERRUPT;
         make_ready(pdest);
         if (os_current->priority > P_HANDLER) {
             /* Preempt lower-priority process */
@@ -703,6 +698,26 @@ void send_ptr(int dest, int type, void *ptr)
     m.type = type;
     m.ptr1 = ptr;
     send(dest, &m);
+}
+
+void receive_msg(int type)
+{
+    message m;
+    receive(type, &m);
+}
+
+int receive_int(int type)
+{
+    message m;
+    receive(type, &m);
+    return m.int1;
+}
+
+void *receive_ptr(int type)
+{
+    message m;
+    receive(type, &m);
+    return m.ptr1;
 }
 
 

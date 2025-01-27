@@ -60,7 +60,7 @@ static void init_radio()
 /* radio_await -- wait for expected interrupt */
 static void radio_await(unsigned volatile *event)
 {
-    receive(INTERRUPT, NULL);
+    receive_msg(INTERRUPT);
     assert(*event);
     *event = 0;
     clear_pending(RADIO_IRQ);

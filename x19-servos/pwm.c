@@ -124,7 +124,7 @@ static void pwm_task(int arg)
             clear_pending(TIMER2_IRQ);
             TIMER2.INTENSET = BIT(TIMER_INT_COMPARE2);
             enable_irq(TIMER2_IRQ);
-            receive(INTERRUPT, NULL);
+            receive_msg(INTERRUPT);
             send_msg(client, REPLY);
             break;
 

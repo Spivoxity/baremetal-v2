@@ -46,7 +46,7 @@ void light_task(int arg)
     timer_pulse(100);
 
     while (1) {
-        receive(PING, NULL);
+        receive_msg(PING);
         x = adc_reading(CHAN);
         display_show(pattern[x/54]);
     }

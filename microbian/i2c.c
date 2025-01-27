@@ -33,7 +33,7 @@ static int i2c_wait(int bus, unsigned volatile *event)
 {
     int irq = i2c_pins[bus].irq;
 
-    receive(INTERRUPT, NULL);
+    receive_msg(INTERRUPT);
 
     if (I2C[bus]->ERROR) {
         I2C[bus]->ERROR = 0; 

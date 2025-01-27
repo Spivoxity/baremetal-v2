@@ -197,5 +197,5 @@ void timer_pulse(int msec)
 /* timer_wait -- sleep until next timer pulse */
 void timer_wait(void)
 {
-    receive(PING, NULL);
+    receive_msg(PING);
 }
