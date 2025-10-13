@@ -3,9 +3,11 @@ Bare metal micro:bit &ndash; code for V2
 
 This repository contains code for the experiments that are described
 in the book,
-[_Bare metal micro:bit_](https://spivoxity.net/baremetal),
+[_Bare metal micro:bit_](https://spivey.oriel.ox.ac.uk/baremetal),
 configured for the V2 micro:bit with an nRF52833
 microcontroller chip.
+
+See the file `COPYRIGHT` for copyright and licencing information.
 
 Note than in August, 2024, I published a new revision of the code that
 uses a changed convention `UART.TXD` for referring to device
